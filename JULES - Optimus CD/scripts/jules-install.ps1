@@ -17,13 +17,20 @@
 #   powershell -NoProfile -File jules-install.ps1 -Repo MAVIS-OPTIMUS-CI
 #   powershell -NoProfile -File jules-install.ps1 -Repo MAVIS-OPTIMUS-CI -Apply
 #
+# Exit codes:
+#   0 = plan produced (or applied)
+#   2 = gh unavailable, or the repo is not in the registry
+#   6 = a write to GitHub failed
+#   7 = the repo does not exist on GitHub - a plan for it would be fiction
+#
 # ASCII ONLY: executed by Windows PowerShell 5.1.
 
 param(
     [Parameter(Mandatory = $true)][string]$Repo,
     [switch]$Apply,
     [switch]$SkipContext,
-    [switch]$SkipVerifyWorkflow
+    [switch]$SkipVerifyWorkflow,
+    [string]$LogDir = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -77,7 +84,7 @@ function Set-RepoFile {
 }
 
 function Main {
-    Start-JulesLog -Name 'jules-install'
+    Start-JulesLog -Name 'jules-install' -LogDir $LogDir
 
     if (-not (Assert-Gh)) { return 2 }
 
@@ -89,6 +96,23 @@ function Main {
     }
     $branch = $entry.branch
     Write-JulesLog -Message ('target: apvizual-max/' + $Repo + ' branch ' + $branch) -Level 'STEP'
+
+    # --- 0. does the repo exist? -----------------------------------------
+    # A plan for a repo that does not exist is not a plan. MEASURED
+    # 2026-10-24: on MAVIS-OPTIMUS-CD (404 on the API) the installer
+    # reported "PLAN: would create/update label jules" and exited 0 - a
+    # report indistinguishable from a repo whose label is merely missing.
+    # The priming of CD runs this installer; it must tell the truth.
+    $repoRes = Invoke-Gh -GhArgs @('api', ('repos/apvizual-max/' + $Repo))
+    if (-not $repoRes.Ok) {
+        Write-JulesLog -Message ('repo inexistent pe GitHub: apvizual-max/' + $Repo) -Level 'ERROR'
+        Write-JulesOut ('MODE=' + $(if ($Apply) { 'APPLIED' } else { 'PLAN' }))
+        Write-JulesOut ('REPO=' + $Repo)
+        Write-JulesOut ('REPO_EXISTS=no')
+        Write-JulesOut ('NEXT=creeaza repo-ul pe GitHub, apoi reia instalarea')
+        return 7
+    }
+    Write-JulesLog -Message 'repo exista pe GitHub' -Level 'STEP'
 
     # --- 1. label --------------------------------------------------------
     $labelRes = Invoke-Gh -GhArgs @('label', 'list', '-R', ('apvizual-max/' + $Repo), '--limit', '100', '--json', 'name')
@@ -170,6 +194,7 @@ function Main {
     if ($Apply) { $mode = 'APPLIED' }
     Write-JulesOut ('MODE=' + $mode)
     Write-JulesOut ('REPO=' + $Repo)
+    Write-JulesOut ('REPO_EXISTS=yes')
     Write-JulesOut ('BRANCH=' + $branch)
     Write-JulesOut ('LABEL=' + $(if ($hasLabel) { 'exista' } else { 'creat' }))
     Write-JulesOut ('SECRET=' + $(if ($hasSecret) { 'prezent' } else { 'LIPSASTE' }))

@@ -79,6 +79,13 @@ Toate scripturile sunt **ASCII pur** (Windows PowerShell 5.1 rupe șirurile cu
 interpolare dacă apare un octet peste `0x7F` fără BOM) și se rulează cu
 `powershell -NoProfile -File`. `pwsh` **nu** e instalat pe această mașină.
 
+**Codurile de ieșire ale installerului:** `0` = plan (sau aplicat), `2` = `gh`
+lipsă sau repo-ul nu e în registru, `6` = o scriere a picat, **`7` = repo-ul
+nu există încă pe GitHub**. La `7` raportul spune `REPO_EXISTS=no`: nu e un
+plan, e o refuzare — creează repo-ul mai întâi. Verificat: pe repo inexistent
+installerul raporta „would create/update label" și ieșea 0, indistinct de un
+repo cu eticheta lipsă. Reparat și cuplat cu proba `proba-instalare`.
+
 ## Cota lui Jules
 
 Cota e **100 de taskuri pe zi**. Platforma arde cel mult `maxTasksPerDay`

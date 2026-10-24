@@ -114,13 +114,20 @@ function Write-JulesOut {
 }
 
 function Start-JulesLog {
-    param([Parameter(Mandatory = $true)][string]$Name)
-    $logDir = Join-Path (Get-JulesRoot) 'logs'
-    if (-not (Test-Path -LiteralPath $logDir)) {
-        New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+    param(
+        [Parameter(Mandatory = $true)][string]$Name,
+        # Optional log directory. Default: the platform's own logs/.
+        # A probe passes a temp directory so the gate does not dirty the
+        # tracked log history on every run.
+        [string]$LogDir = ''
+    )
+    $dir = $LogDir
+    if (-not $dir) { $dir = Join-Path (Get-JulesRoot) 'logs' }
+    if (-not (Test-Path -LiteralPath $dir)) {
+        New-Item -ItemType Directory -Path $dir -Force | Out-Null
     }
     $stamp = (Get-Date).ToString('yyyy-MM-dd')
-    $script:JulesLogFile = Join-Path $logDir ('{0}-{1}.log' -f $Name, $stamp)
+    $script:JulesLogFile = Join-Path $dir ('{0}-{1}.log' -f $Name, $stamp)
     Write-JulesLog -Message ('log opened: ' + $script:JulesLogFile) -Level 'STEP'
 }
 

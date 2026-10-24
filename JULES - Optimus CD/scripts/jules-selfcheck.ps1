@@ -501,6 +501,64 @@ if ($backlogProbeOut -match 'PROBE_BACKLOG_OK') {
     Write-Output ('UNKNOWN proba-backlog - proba nu a putut fi masurata (' + $backlogProbeOut.Trim() + ')')
 }
 
+# --- The installer-truth probe -------------------------------------------
+#
+# The installer used to report a valid PLAN for a repo that does not exist.
+# MEASURED 2026-10-24: on MAVIS-OPTIMUS-CD (404 on the API) it printed
+# "PLAN: would create/update label jules" and exited 0 - the same report a
+# repo whose label is merely missing gets. The priming of the CD session
+# runs this installer, so a lying plan there is a broken handover.
+#
+# This probe demands BOTH directions:
+#
+#   a) a repo that does NOT exist  -> must be refused (exit 7, REPO_EXISTS=no)
+#   b) a repo that DOES exist      -> must produce a plan (exit 0, REPO_EXISTS=yes)
+#
+# If gh is unavailable the probe reports UNKNOWN. It never reports a pass it
+# did not measure.
+$installProbeFile = Join-Path $probeDir ('install-probe-' + [guid]::NewGuid().ToString('N') + '.ps1')
+$installerLiteral = (Join-Path $ScriptsDir 'jules-install.ps1').Replace("'", "''")
+$installProbeSrc = @(
+    '$ErrorActionPreference = ''Stop''',
+    ('. ''' + $libLiteral + ''''),
+    '$tmpLog = Join-Path (Get-JulesRoot) ''state\tmp\install-probe-logs''',
+    ('$installer = ' + [char]39 + $installerLiteral + [char]39),
+    '$a = Invoke-Native -Program ''powershell'' -Arguments @(''-NoProfile'', ''-File'', $installer, ''-Repo'', ''MAVIS-OPTIMUS-CD'', ''-LogDir'', $tmpLog)',
+    '$b = Invoke-Native -Program ''powershell'' -Arguments @(''-NoProfile'', ''-File'', $installer, ''-Repo'', ''MAVIS-CLOUD'', ''-LogDir'', $tmpLog)',
+    'if ($a.ExitCode -eq 2 -and $b.ExitCode -eq 2) { Write-JulesOut ''PROBE_INSTALL_UNKNOWN gh unavailable''; exit 0 }',
+    'if ($a.ExitCode -ne 7) { Write-JulesOut (''PROBE_INSTALL_BAD a: a missing repo was not refused, exit '' + $a.ExitCode); exit 0 }',
+    'if ($a.Out -notmatch ''REPO_EXISTS=no'') { Write-JulesOut ''PROBE_INSTALL_BAD a: the report did not say REPO_EXISTS=no''; exit 0 }',
+    'if ($b.ExitCode -ne 0) { Write-JulesOut (''PROBE_INSTALL_BAD b: an existing repo was refused, exit '' + $b.ExitCode); exit 0 }',
+    'if ($b.Out -notmatch ''REPO_EXISTS=yes'') { Write-JulesOut ''PROBE_INSTALL_BAD b: the report did not say REPO_EXISTS=yes''; exit 0 }',
+    'Write-JulesOut ''PROBE_INSTALL_OK'''
+) -join "`n"
+
+$installProbeOut = ''
+try {
+    [System.IO.File]::WriteAllText($installProbeFile, ($installProbeSrc + "`n"), (New-Object System.Text.UTF8Encoding($false)))
+    $prevEap = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    $raw = & powershell -NoProfile -File $installProbeFile 2>&1
+    $ErrorActionPreference = $prevEap
+    if ($raw) { $installProbeOut = ($raw -join "`n") }
+} catch {
+    $installProbeOut = [string]$_
+} finally {
+    $ErrorActionPreference = 'Continue'
+    if (Test-Path -LiteralPath $installProbeFile) { Remove-Item -LiteralPath $installProbeFile -Force -ErrorAction SilentlyContinue }
+    $ErrorActionPreference = $prevEap
+}
+
+if ($installProbeOut -match 'PROBE_INSTALL_OK') {
+    Write-Output 'OK   proba-instalare - repo inexistent refuzat (exit 7, REPO_EXISTS=no); repo existent cu plan (exit 0, REPO_EXISTS=yes)'
+} elseif ($installProbeOut -match 'PROBE_INSTALL_BAD') {
+    $problems++
+    Write-Output ('FAIL proba-instalare - ' + $installProbeOut.Trim())
+} else {
+    $unknown++
+    Write-Output ('UNKNOWN proba-instalare - proba nu a putut fi masurata (' + $installProbeOut.Trim() + ')')
+}
+
 Write-Output ('FILES=' + $files.Count + ' PROBLEMS=' + $problems + ' UNKNOWN=' + $unknown)
 if ($problems -gt 0) {
     Write-Output 'POARTA A BLOCAT. Nimic nu ruleaza pana nu se repara.'

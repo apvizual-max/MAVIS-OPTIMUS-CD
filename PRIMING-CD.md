@@ -200,7 +200,14 @@ Ce face: creează eticheta `jules`, scrie `.github/workflows/jules.yml` și
 `verify.yml`, și scrie `JULES-CONTEXT.md` în rădăcina repo-ului (contextul
 canonic, derivat din `config/jules-context.md`).
 
+**Codurile de ieșire ale installerului:** `0` = plan (sau aplicat), `2` = `gh`
+lipsă sau repo-ul nu e în registru, `6` = o scriere a picat, **`7` = repo-ul
+nu există încă pe GitHub**. La `7` raportul spune `REPO_EXISTS=no` — atunci
+**Pasul 2 nu s-a făcut**: creează repo-ul mai întâi, apoi reia. Nu aplica
+planul peste un repo inexistent.
+
 **Acceptare:**
+- ieșirea installerului conține `REPO_EXISTS=yes` și `EXIT 0`
 - `gh api repos/apvizual-max/MAVIS-OPTIMUS-CD/contents/.github/workflows` → 2 fișiere
 - `gh api repos/apvizual-max/MAVIS-OPTIMUS-CD/labels` → conține `jules`
 - `gh api repos/apvizual-max/MAVIS-OPTIMUS-CD/contents/JULES-CONTEXT.md` → există
