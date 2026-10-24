@@ -1,0 +1,18 @@
+# Working artifacts, not sources. Measured 2026-10-24 on disk:
+#   state/                            2149 files, 12.2 MB - verification blobs + scratch probes
+#   work/                             7185 files, 72.6 MB - local clones + drafts
+#   _GitHub-Main_Repos-Local-Temp/     323 files,  3.2 MB - downloaded repos
+# None of these are sources. None of them belong in history.
+state/
+work/
+_GitHub-Main_Repos-Local-Temp/
+
+# Scratch, never committed.
+*.tmp
+*.bak
+*.orig
+
+# OS noise
+Thumbs.db
+desktop.ini
+.DS_Store
