@@ -2,7 +2,7 @@
 
 > **Jules propune. Local decide.** Aceasta nu e o preferință, e arhitectura:
 > Jules lucrează într-un sandbox Google, fără acces la mașina lui Popy, fără
-> acces la `MAVIS-OPTIMUS-CI`, fără memorie între sesiuni. Local are toate
+> acces la repo-urile OPTIMUS, fără memorie între sesiuni. Local are toate
 > astea. Deci Local verifică, Local decide.
 
 ## 1. Cele patru porți
@@ -12,7 +12,7 @@ Niciun pull request nu trece fără să se lovească de toate patru.
 | Poartă | Ce verifică | Cine măsoară |
 |---|---|---|
 | **P1 — Politică** | cai interzise (`node_modules/`, `vendor/`, `dist/`, lockfile-uri), secrete în diff, PR-uri prea late | `Test-DiffPolicy` în `jules-lib.ps1` |
-| **P2 — Raport** | cele trei secțiuni obligatorii: *Ce am schimbat / De ce / Cum am verificat*, citite din raportul local de adaptare | `Get-AdaptReportState` în `jules-lib.ps1` |
+| **P2 — Raport** | cele **cinci** secțiuni obligatorii: *Ce am schimbat / De ce / Cum am verificat / Ce NU am facut si de ce / Riscuri*, citite din raportul local de adaptare | `Get-AdaptReportState` în `jules-lib.ps1` |
 | **P3 — Verificare fizică** | suita de teste a repo-ului, rulată **aici, acum**, pe codul propus | `jules-verify.ps1` |
 | **P4 — Verdict** | ACCEPT / ADAPT / REJECT / UNVERIFIED, cu motiv scris | `jules-triage.ps1` |
 
@@ -31,6 +31,12 @@ de bază. Un eșec care nu se reproduce sau care exista înainte este
 **măsurat și raportat**, dar **nu închide** propunerea. Măsurat pe
 `SENTINEL_PRIME#3`: același SHA, două arbori, rezultate diferite; iar
 `test_suite.py` pica la fel și pe `main`.
+
+**Cinci secțiuni, nu trei.** Raportul generat de `jules-adapt.ps1` are
+`Ce am schimbat`, `De ce`, `Cum am verificat`, `Ce NU am facut si de ce`,
+`Riscuri` — plus o secțiune **măsurată** de conflict cu celelalte PR-uri
+deschise. Verificat pe raportul generat, nu pe memoria: acea secțiune
+apare în `docs/adaptari/adapt-MAVIS-CLOUD-pr9.md`.
 
 ## 3. Regula cifrelor
 

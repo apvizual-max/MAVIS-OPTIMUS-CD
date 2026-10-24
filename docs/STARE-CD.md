@@ -168,6 +168,24 @@ identificate există și pe `main`.
 **Cota Jules: 100/zi.** Nu e blocajul — blocajul e backlog-ul: 99 PR-uri
 deschise, plafon `maxOpenPrsPerRepo` = 3.
 
+**Actualizare 2026-10-24.** Tabelul de mai sus rămâne istoricul rulării din
+2026-10-23. **Backlog-ul a crescut la 162 de PR-uri deschise în 6 repo-uri**
+(MAVIS-CLOUD 73, OPTIMUS-Backbone 43, pkms-vault-automation 28, SENTINEL_PRIME
+8, Optimus-Mavis-Skills 6, MAVIS-OPTIMUS-CI 4), măsurat cu
+`gh api repos/<repo>/pulls?state=open&per_page=100`. Login-ul real al lui Jules
+e `google-labs-jules[bot]` — filtrul `app/google-labs-jules` din documentația
+veche returna 0 și era greșit.
+
+În aceeași măsurătoare a ieșit un **defect al porții**: `Get-JulesPrs` citea
+`gh pr list --limit 50`, deci triajul vedea doar cele 50 mai noi PR-uri — la
+cele 73 ale MAVIS-CLOUD, **23 rămâneau invizibile**. Reparat la `--limit 500`
++ probă `proba-backlog` în `jules-selfcheck.ps1`, falsificată în ambele
+sensuri (limit 50 → `FAIL`, EXIT 1).
+
+**Consecință: triajul trebuie reluat pe backlog-ul de 162.** Cele 12 ACCEPT de
+mai sus sunt un subset valid și rămân eligibile pentru merge cu R0; celelalte
+150 nu au fost încă triate. Reluarea e sarcină de CD.
+
 ## 9. Starea Git a repo-ului CI
 
 | | |

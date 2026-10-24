@@ -3,6 +3,26 @@
 **Măsurat:** 2026-10-22 · **Metodă:** `gh api` / `gh pr list` / rularea
 scripturilor pe această mașină.
 
+> **NOTĂ DE ACTUALIZARE — 2026-10-24.** Restul documentului este o
+> **snap-shot măsurat la 2026-10-22** și rămâne istoric. Cifrele s-au schimbat
+> și una dintre ele era **greșită**:
+>
+> - **Login-ul real al lui Jules este `google-labs-jules[bot]`,** nu
+>   `app/google-labs-jules`. Filtrul vechi returna 0 PR-uri peste tot.
+> - **162 de PR-uri deschise în 6 repo-uri** (nu 99 în 4): MAVIS-CLOUD 73,
+>   OPTIMUS-Backbone 43, pkms-vault-automation 28, SENTINEL_PRIME 8,
+>   Optimus-Mavis-Skills 6, MAVIS-OPTIMUS-CI 4. În toate repo-urile existente,
+>   100% din PR-urile deschise sunt ale lui Jules.
+> - **Fereastra porții era trunchiată:** `Get-JulesPrs` citea `--limit 50`, deci
+>   23 din cele 73 de PR-uri ale MAVIS-CLOUD erau **invizibile triajului** —
+>   poarta suverană nu vedea tot backlog-ul. Reparată la 500 și cuplată cu
+>   proba `proba-backlog` (falsificată în ambele sensuri).
+> - **Platforma nu mai stă în `MAVIS-OPTIMUS-CI`** — a mutat în folderul CD pe
+>   2026-10-24. Referințele de mai jos la „repo-ul gazdă" sunt istorice.
+>
+> Cifrele proaspete stau în `config/repos.json` (v1.2.0) și în
+> `JULES - Optimus CD/README.md`.
+
 ## 1. Ceea ce s-a măsurat, nu ce s-a presupus
 
 | Repo | Ramură | Privat | Etichetă `jules` | `jules.yml` | `JULES_API_KEY` | PR-uri Jules deschise |

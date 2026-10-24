@@ -56,6 +56,7 @@ if ($files.Count -eq 0) {
 }
 
 $problems = 0
+$unknown = 0
 foreach ($f in $files) {
     $p = $f.FullName
     if (-not (Test-Path -LiteralPath $p)) {
@@ -434,10 +435,79 @@ if ($attrProbeOut -match 'PROBE_ATTR_OK') {
     Write-Output ('FAIL proba-atribuire - ' + $attrProbeOut.Trim())
 }
 
-Write-Output ('FILES=' + $files.Count + ' PROBLEMS=' + $problems)
+# --- The backlog-window probe ---------------------------------------------
+#
+# `gh pr list --limit 50` was the window through which the sovereign gate
+# saw the proposals. MEASURED 2026-10-24: MAVIS-CLOUD had 73 open Jules PR,
+# so 23 of them were invisible to the gate that is supposed to judge them.
+#
+# This probe compares the platform's own window against the REST count and
+# demands BOTH directions:
+#
+#   a) the default window must see every open PR   -> must pass
+#   b) a deliberately narrow window must be caught   -> must be detected
+#
+# If gh or the network is unavailable the probe reports UNKNOWN. It never
+# reports a pass it did not measure.
+$backlogProbeFile = Join-Path $probeDir ('backlog-probe-' + [guid]::NewGuid().ToString('N') + '.ps1')
+$backlogProbeSrc = @(
+    '$ErrorActionPreference = ''Stop''',
+    ('. ''' + $libLiteral + ''''),
+    '$repo = ''MAVIS-CLOUD''',
+    '$logins = @()',
+    '$page = 1',
+    'while ($true) {',
+    '    $res = Invoke-Native -Program ''gh'' -Arguments @(''api'', (''repos/apvizual-max/'' + $repo + ''/pulls?state=open&per_page=100&page='' + $page))',
+    '    if ($res.ExitCode -ne 0) { Write-JulesOut (''PROBE_BACKLOG_UNKNOWN gh api exit '' + $res.ExitCode); exit 0 }',
+    '    $arr = @(ConvertFrom-JulesJson -Json $res.Out)',
+    '    if ($arr.Count -eq 0) { break }',
+    '    foreach ($p in $arr) { $logins += [string]$p.user.login }',
+    '    if ($arr.Count -lt 100) { break }',
+    '    $page++',
+    '}',
+    '$api = @($logins | Where-Object { $_ -match ''jules|google-labs'' })',
+    'if ($api.Count -eq 0) { Write-JulesOut ''PROBE_BACKLOG_UNKNOWN no open PR to compare''; exit 0 }',
+    '$wide = @(Get-JulesPrs -Repo $repo)',
+    '$narrow = @(Get-JulesPrs -Repo $repo -Limit 50)',
+    'if ($wide.Count -ne $api.Count) { Write-JulesOut (''PROBE_BACKLOG_TRUNCATED wide='' + $wide.Count + '' api='' + $api.Count); exit 0 }',
+    'if ($narrow.Count -ge $api.Count) { Write-JulesOut (''PROBE_BACKLOG_NOFALSIFY wide='' + $wide.Count + '' narrow='' + $narrow.Count + '' api='' + $api.Count); exit 0 }',
+    'Write-JulesOut (''PROBE_BACKLOG_OK wide='' + $wide.Count + '' narrow='' + $narrow.Count + '' api='' + $api.Count)',
+    'exit 0'
+) -join "`n"
+
+$backlogProbeOut = ''
+try {
+    [System.IO.File]::WriteAllText($backlogProbeFile, ($backlogProbeSrc + "`n"), (New-Object System.Text.UTF8Encoding($false)))
+    $prevEap = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    $raw = & powershell -NoProfile -File $backlogProbeFile 2>&1
+    $ErrorActionPreference = $prevEap
+    if ($raw) { $backlogProbeOut = ($raw -join "`n") }
+} catch {
+    $backlogProbeOut = [string]$_
+} finally {
+    $ErrorActionPreference = 'Continue'
+    if (Test-Path -LiteralPath $backlogProbeFile) { Remove-Item -LiteralPath $backlogProbeFile -Force -ErrorAction SilentlyContinue }
+    $ErrorActionPreference = $prevEap
+}
+
+if ($backlogProbeOut -match 'PROBE_BACKLOG_OK') {
+    Write-Output ('OK   proba-backlog - fereastra portii acopera tot backlog-ul (' + $backlogProbeOut.Trim() + ')')
+} elseif ($backlogProbeOut -match 'PROBE_BACKLOG_TRUNCATED') {
+    $problems++
+    Write-Output ('FAIL proba-backlog - fereastra portii nu acopera tot backlog-ul (' + $backlogProbeOut.Trim() + ')')
+} else {
+    $unknown++
+    Write-Output ('UNKNOWN proba-backlog - proba nu a putut fi masurata (' + $backlogProbeOut.Trim() + ')')
+}
+
+Write-Output ('FILES=' + $files.Count + ' PROBLEMS=' + $problems + ' UNKNOWN=' + $unknown)
 if ($problems -gt 0) {
     Write-Output 'POARTA A BLOCAT. Nimic nu ruleaza pana nu se repara.'
     exit 1
+}
+if ($unknown -gt 0) {
+    Write-Output 'Porta a trecut, dar o proba nu a putut fi masurata. Necunoscutul se raporteaza, nu se presupune.'
 }
 Write-Output 'Toate scripturile sunt curate: ASCII pur, parse fara erori, cod de iesire necontaminat.'
 exit 0

@@ -1,7 +1,8 @@
 # CONTEXT CANONIC — ce primește Jules la fiecare task
 
 > Acesta e **contextul care lipsea**. Jules nu știe regulile proiectului
-> nostru. Nu are acces la conversație, la memorie și la `MAVIS-OPTIMUS-CI`.
+> nostru. Nu are acces la conversație, la memorie și la documentația
+> OPTIMUS (regulile trăiesc în `MAVIS-OPTIMUS-CD` și `MAVIS-OPTIMUS-CI`).
 > În schimb, primește **body-ul issue-ului**. Așa că contextul călătorește
 > prin corpul task-ului, nu printr-o interfață web.
 >

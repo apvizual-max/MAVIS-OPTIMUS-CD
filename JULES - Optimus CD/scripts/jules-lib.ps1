@@ -680,11 +680,18 @@ function Get-TargetHistory {
 function Get-JulesPrs {
     param(
         [Parameter(Mandatory = $true)][string]$Repo,
-        [string[]]$States = @('open')
+        [string[]]$States = @('open'),
+        # The window must cover the WHOLE backlog, not a sample.
+        # MEASURED 2026-10-24: MAVIS-CLOUD had 73 open Jules PR while this
+        # limit was 50, so the sovereign gate silently ignored 23 of them.
+        # A gate that cannot see its whole input is not a gate.
+        # The parameter stays so the selfcheck can prove the gate fails
+        # when the window is too small.
+        [int]$Limit = 500
     )
     $stateArg = ($States -join ',')
     $res = Invoke-Gh -GhArgs @('pr', 'list', '-R', ('apvizual-max/' + $Repo), '--state', $stateArg,
-                               '--limit', '50', '--json', 'number,title,author,headRefName,createdAt,url,body')
+                               '--limit', ([string]$Limit), '--json', 'number,title,author,headRefName,createdAt,url,body')
     if (-not $res.Ok) {
         Write-JulesLog -Message ('pr list failed for ' + $Repo + ': ' + $res.Err) -Level 'ERROR'
         return @()

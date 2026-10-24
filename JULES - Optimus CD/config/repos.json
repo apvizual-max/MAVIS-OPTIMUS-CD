@@ -1,7 +1,7 @@
 {
-  "version": "1.1.0",
-  "measuredAt": "2026-10-22",
-  "measurement": "gh api repos/<repo> + gh secret list + gh api labels + gh api contents/.github/workflows + gh pr list --author jules",
+  "version": "1.2.0",
+  "measuredAt": "2026-10-24",
+  "measurement": "gh api repos/<repo>/pulls?state=open&per_page=100 + gh api repos/<repo>/labels + gh api repos/<repo>/contents/.github/workflows + gh secret list -R <repo>",
   "owner": "apvizual-max",
   "quotaPerDay": 100,
   "fieldSemantics": {
@@ -10,7 +10,8 @@
     "jules.label": "eticheta 'jules' exista -> calea AUTOMATA (issue + label) este deschisa",
     "jules.workflow": "jules.yml exista -> workflow-ul de declansare este instalat",
     "jules.secret": "JULES_API_KEY exista ca secret de repo -> workflow-ul chiar poate trimite",
-    "jules.openPrs": "PR-uri deschise de la app/google-labs-jules, masurate. Poate fi >0 chiar fara plumbing, pentru ca Jules poate lucra si din interfata lui web"
+    "jules.openPrs": "PR-uri deschise de la google-labs-jules[bot]. Masurat 2026-10-24: in toate cele 6 repo-uri existente, 100% din PR-urile deschise sunt ale lui Jules, deci openPrs este si numarul TOTAL de PR-uri deschise. Login-ul real este 'google-labs-jules[bot]' - filtrul 'app/google-labs-jules' returneaza 0 si e gresit",
+    "jules.window": "fereastra de citire a platformei: Get-JulesPrs -Limit 500. Sub 50 fereastra taia backlog-ul (masurat: MAVIS-CLOUD avea 73 PR-uri deschise)"
   },
   "defaults": {
     "axisRotation": ["performance", "design", "security"],
@@ -30,8 +31,8 @@
         "label": true,
         "workflow": true,
         "secret": true,
-        "openPrs": 34,
-        "measuredAt": "2026-10-22"
+        "openPrs": 73,
+        "measuredAt": "2026-10-24"
       },
       "verify": {
         "mode": "explicit",
@@ -40,7 +41,28 @@
           "node --test ALEX-KIT/cv-mutator.test.js"
         ]
       },
-      "notes": "Singurul repo cu calea automata completa: eticheta + jules.yml + JULES_API_KEY. Bucla demonstrata (issue #5 -> PR #8 -> squash merge)."
+      "notes": "Singurul repo cu calea automata completa: eticheta + jules.yml + verify.yml + JULES_API_KEY. Bucla demonstrata (issue #5 -> PR #8 -> squash merge). Este tinta de lucru a CD si puntea Local<->Cloud a CI - continutul se citeste, nu se scrie."
+    },
+    {
+      "name": "MAVIS-OPTIMUS-CD",
+      "remote": "https://github.com/apvizual-max/MAVIS-OPTIMUS-CD",
+      "branch": "main",
+      "private": false,
+      "triage": false,
+      "dispatch": false,
+      "jules": {
+        "label": false,
+        "workflow": false,
+        "secret": false,
+        "openPrs": 0,
+        "measuredAt": "2026-10-24"
+      },
+      "verify": {
+        "mode": "auto",
+        "autoDetect": true,
+        "commands": []
+      },
+      "notes": "MASCURAT 2026-10-24: repo-ul NU exista (404 pe API). Intrarea exista ca declaratie a planului, nu ca masuratoare. triage si dispatch sunt false pentru ca o cifra falsa ar bloca bucla zilnica. La priming (R0-1: creare repo public) sesiunea CD ruleaza jules-install.ps1 -Repo MAVIS-OPTIMUS-CD -Apply, pune secretul (R0-2) si comuta triage/dispatch pe true aici."
     },
     {
       "name": "MAVIS-OPTIMUS-CI",
@@ -53,8 +75,8 @@
         "label": false,
         "workflow": false,
         "secret": false,
-        "openPrs": 0,
-        "measuredAt": "2026-10-22"
+        "openPrs": 4,
+        "measuredAt": "2026-10-24"
       },
       "verify": {
         "mode": "explicit",
@@ -63,7 +85,7 @@
           "node --check scripts/notebooklm-cdp.mjs"
         ]
       },
-      "notes": "Repo-ul gazda al platformei. Calea automata lipseste: ruleaza jules-install.ps1 si pune secretul."
+      "notes": "SOT CI: puntea Local<->Cloud si procedurile Git/GitHub. NU mai este gazda platformei - platforma a plecat in folderul CD pe 2026-10-24. Calea automata lipseste aici (fara eticheta, fara workflow, fara secret), deci jules-daily scrie 3 erori 'label jules MISSING' pe zi pentru acest repo: e un plan neconstruit, nu o eroare ascunsa."
     },
     {
       "name": "pkms-vault-automation",
@@ -76,15 +98,15 @@
         "label": false,
         "workflow": false,
         "secret": false,
-        "openPrs": 25,
-        "measuredAt": "2026-10-22"
+        "openPrs": 28,
+        "measuredAt": "2026-10-24"
       },
       "verify": {
         "mode": "auto",
         "autoDetect": true,
         "commands": []
       },
-      "notes": "Ramura este master, nu main. Jules lucreaza aici prin interfata web, fara plumbing GitHub - de aceea are 25 de PR-uri deschise fara ca eticheta sa existe."
+      "notes": "Ramura este master, nu main. Jules lucreaza aici prin interfata web, fara plumbing GitHub - de aceea are 28 de PR-uri deschise fara ca eticheta sa existe."
     },
     {
       "name": "Optimus-Mavis-Skills",
@@ -97,8 +119,8 @@
         "label": false,
         "workflow": false,
         "secret": false,
-        "openPrs": 0,
-        "measuredAt": "2026-10-22"
+        "openPrs": 6,
+        "measuredAt": "2026-10-24"
       },
       "verify": {
         "mode": "auto",
@@ -118,15 +140,15 @@
         "label": false,
         "workflow": false,
         "secret": false,
-        "openPrs": 37,
-        "measuredAt": "2026-10-22"
+        "openPrs": 43,
+        "measuredAt": "2026-10-24"
       },
       "verify": {
         "mode": "auto",
         "autoDetect": true,
         "commands": []
       },
-      "notes": "Cea mai mare backlog de PR-uri Jules: 37 deschise, toate Python si PowerShell."
+      "notes": "Cea mai mare backlog de Jules: 43 deschise, toate Python si PowerShell."
     },
     {
       "name": "SENTINEL_PRIME",
@@ -139,15 +161,15 @@
         "label": false,
         "workflow": false,
         "secret": false,
-        "openPrs": 3,
-        "measuredAt": "2026-10-22"
+        "openPrs": 8,
+        "measuredAt": "2026-10-24"
       },
       "verify": {
         "mode": "auto",
         "autoDetect": true,
         "commands": []
       },
-      "notes": "Substratul SENTINEL, privat. Se triaza (3 PR-uri deschise), dar NU se trimit taskuri noi: izolarea maxima a doctrinei cere asta. Decizia poate fi schimbata cu o linie."
+      "notes": "Substratul SENTINEL, privat. Se triaza (8 PR-uri deschise), dar NU se trimit taskuri noi: izolarea maxima a doctrinei cere asta. Decizia poate fi schimbata cu o linie."
     },
     {
       "name": "hermes-doctor",
@@ -161,7 +183,7 @@
         "workflow": false,
         "secret": false,
         "openPrs": 0,
-        "measuredAt": "2026-10-22"
+        "measuredAt": "2026-10-24"
       },
       "verify": {
         "mode": "auto",
@@ -182,7 +204,7 @@
         "workflow": false,
         "secret": false,
         "openPrs": 0,
-        "measuredAt": "2026-10-22"
+        "measuredAt": "2026-10-24"
       },
       "verify": {
         "mode": "auto",

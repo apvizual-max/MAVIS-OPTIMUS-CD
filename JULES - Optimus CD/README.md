@@ -1,7 +1,9 @@
 # Platforma de integrare MAVIS LOCAL ↔ JULES
 
 > Folderul de lucru creat de Popy pentru dezvoltarea integrării Jules.
-> Tot ce se construiește aici ajunge în `MAVIS-OPTIMUS-CI` (repo public).
+> **Mutat aici în 2026-10-24, din `MAVIS-OPTIMUS-CI`.** CD are acum propriul
+> SOT: folderul `Mavis-Optimus-Continuous-Development`, cu repo public
+> `MAVIS-OPTIMUS-CD` (creat la priming). Convenția: `docs/ARHITECTURA-CI-CD.md`.
 
 ## Ce este
 
@@ -61,7 +63,7 @@ issue-ului în prompt. Așa că **regulile și invariantele noastre călătoresc
 
 ```powershell
 # plan, fără scrieri pe GitHub
-powershell -NoProfile -File scripts\jules-install.ps1 -Repo MAVIS-OPTIMUS-CI
+powershell -NoProfile -File scripts\jules-install.ps1 -Repo MAVIS-OPTIMUS-CD
 
 # o sarcină concretă către Jules
 powershell -NoProfile -File scripts\jules-dispatch.ps1 -Repo MAVIS-CLOUD -Axis security
@@ -86,22 +88,38 @@ unde sandbox-ul lui Jules chiar contează.
 Taskurile sunt **la nivel de sistem**, nu la nivel de virgulă: o țintă
 măsurată, un test, un PR.
 
-## Starea măsurată (2026-10-22)
+## Starea măsurată (2026-10-24)
 
 | Repo | PR-uri Jules deschise | Etichetă `jules` | Workflow | Secret | Calea automată |
 |---|---|---|---|---|---|
-| MAVIS-CLOUD | **34** | ✅ | ✅ | ✅ | ✅ |
-| OPTIMUS-Backbone | **37** | ❌ | ❌ | ❌ | ❌ |
-| pkms-vault-automation | **25** | ❌ | ❌ | ❌ | ❌ |
-| SENTINEL_PRIME | **3** | ❌ | ❌ | ❌ | ❌ |
-| MAVIS-OPTIMUS-CI | 0 | ❌ | ❌ | ❌ | ❌ |
-| Optimus-Mavis-Skills | 0 | ❌ | ❌ | ❌ | ❌ |
+| MAVIS-CLOUD | **73** | ✅ | ✅ | ✅ | ✅ |
+| OPTIMUS-Backbone | **43** | ❌ | ❌ | ❌ | ❌ |
+| pkms-vault-automation | **28** | ❌ | ❌ | ❌ | ❌ |
+| SENTINEL_PRIME | **8** | ❌ | ❌ | ❌ | ❌ |
+| Optimus-Mavis-Skills | **6** | ❌ | ❌ | ❌ | ❌ |
+| MAVIS-OPTIMUS-CI | **4** | ❌ | ❌ | ❌ | ❌ |
+| **MAVIS-OPTIMUS-CD** | 0 (repo 404) | ❌ | ❌ | ❌ | ❌ — **se montează la priming** |
 
-**99 de PR-uri Jules deschise în 4 repo-uri.** 62 dintre ele sunt în repo-uri
+Măsurat cu `gh api repos/<repo>/pulls?state=open&per_page=100`. **Login-ul real
+al lui Jules este `google-labs-jules[bot]`** — filtrul `app/google-labs-jules`
+returnează 0 și e greșit. În toate cele 6 repo-uri existente, **100% din
+PR-urile deschise sunt ale lui Jules**: `openPrs` e și numărul total.
+
+> **Repo-ul CD nu e încă pe GitHub** (404 pe API, 2026-10-24). Se creează la
+> priming, cu R0 — vezi `PRIMING-CD.md`. Până atunci, CD trăiește local, cu
+> istoric git propriu, iar intrarea din registru are `triage: false` și
+> `dispatch: false` — o cifră falsă ar bloca bucla zilnică.
+
+**162 de PR-uri Jules deschise în 6 repo-uri.** 89 dintre ele sunt în repo-uri
 *fără* plumbing GitHub — deci Jules are și **calea interfeței web**, care
 produce PR-uri fără etichetă, fără workflow și fără secret. Platforma de mai
 jos folosește calea **automată**, pentru că e programabilă și trasabilă; calea
 web rămâne deschisă, iar triajul prinde PR-urile ei oricum.
+
+**Fereastra de citire a porții.** `Get-JulesPrs` citește cu `--limit 500`.
+Era 50: la 73 de PR-uri deschise pe MAVIS-CLOUD, **23 erau invizibile** porții
+suverane. Reparare măsurată + probă `proba-backlog` în `jules-selfcheck.ps1`,
+falsificată în ambele sensuri (limit 50 → `FAIL`, EXIT 1).
 
 Doar MAVIS-CLOUD are calea automată completă. Restul primesc eticheta,
 workflow-ul și contextul prin `jules-install.ps1`. **Secretul `JULES_API_KEY`
@@ -109,7 +127,7 @@ nu poate fi citit de pe GitHub** — e singurul pas care îl poate face doar
 Popy:
 
 ```
-gh secret set JULES_API_KEY -R apvizual-max/MAVIS-OPTIMUS-CI
+gh secret set JULES_API_KEY -R apvizual-max/MAVIS-OPTIMUS-CD
 ```
 
 ## Reguli care nu se negociază
