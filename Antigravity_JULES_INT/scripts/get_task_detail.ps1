@@ -1,10 +1,6 @@
-. "$PSScriptRoot\test_cred.ps1"
+. "$PSScriptRoot\jules-guard.ps1"
 
-$headers = @{
-    "Authorization" = "Bearer $($parsed.access_token)"
-    "Content-Type" = "application/json"
-}
-
+$headers = Get-JulesAuthHeader
 $taskId = "13857061048335159909"
 $url = "https://aida.googleapis.com/v1/swebot/tasks/$taskId"
 

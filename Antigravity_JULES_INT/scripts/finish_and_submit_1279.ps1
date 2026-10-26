@@ -1,10 +1,6 @@
-. "$PSScriptRoot\test_cred.ps1"
+. "$PSScriptRoot\jules-guard.ps1"
 
-$headers = @{
-    "Authorization" = "Bearer $($parsed.access_token)"
-    "Content-Type" = "application/json"
-}
-
+$headers = Get-JulesAuthHeader
 $taskId = "12796110786565823238"
 $stepId = "8a0b5c6f86ce42f5816095e04c4de1f4"
 $feedbackId = [Guid]::NewGuid().ToString().ToUpper()

@@ -1,10 +1,6 @@
-. "$PSScriptRoot\test_cred.ps1"
+. "$PSScriptRoot\jules-guard.ps1"
 
-$headers = @{
-    "Authorization" = "Bearer $($parsed.access_token)"
-    "Content-Type" = "application/json"
-}
-
+$headers = Get-JulesAuthHeader
 $taskIds = @("12796110786565823238", "18356220654205495654")
 
 foreach ($id in $taskIds) {

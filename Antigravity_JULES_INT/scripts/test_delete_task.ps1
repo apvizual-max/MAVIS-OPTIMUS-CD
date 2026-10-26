@@ -1,10 +1,6 @@
-. "$PSScriptRoot\test_cred.ps1"
+. "$PSScriptRoot\jules-guard.ps1"
 
-$headers = @{
-    "Authorization" = "Bearer $($parsed.access_token)"
-    "Content-Type" = "application/json"
-}
-
+$headers = Get-JulesAuthHeader
 # Task 5038156450376238516 is an old Palette task on SENTINEL_PRIME from 12 hours ago
 $taskId = "5038156450376238516"
 $body = @{
