@@ -9,7 +9,7 @@ $taskId = "6108565468928089477"
 $url = "https://aida.googleapis.com/v1/swebot/tasks/$taskId/activities"
 
 try {
-    $res = Invoke-RestMethod -Uri $url -Method Get -Headers $headers
+    $res = Invoke-JulesApiGet -Uri $url
     Write-Host "Activities count: $($res.activities.Count)"
     if ($res.activities.Count -gt 0) {
         $last = $res.activities[-1]

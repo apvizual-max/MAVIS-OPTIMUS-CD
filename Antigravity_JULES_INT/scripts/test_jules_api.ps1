@@ -11,7 +11,7 @@ $headers = @{
 }
 
 try {
-    $res = Invoke-RestMethod -Uri "https://aida.googleapis.com/v1/swebot/tasks" -Method Get -Headers $headers
+    $res = Invoke-JulesApiGet -Uri "https://aida.googleapis.com/v1/swebot/tasks"
     Write-Host "Tasks response received!"
     $tasks = $res.tasks
     Write-Host "Count of tasks: $($tasks.Count)"

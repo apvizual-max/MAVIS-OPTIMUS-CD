@@ -5,7 +5,7 @@ $headers = @{
     "Content-Type" = "application/json"
 }
 
-$res = Invoke-RestMethod -Uri "https://aida.googleapis.com/v1/swebot/tasks" -Method Get -Headers $headers
+$res = Invoke-JulesApiGet -Uri "https://aida.googleapis.com/v1/swebot/tasks"
 $tasks = $res.tasks
 
 $nonCompleted = $tasks | Where-Object { $_.swebotTaskStatus -ne "SWEBOT_TASK_STATUS_COMPLETED" -or [string]::IsNullOrEmpty($_.taskStatus) -or $_.taskStatus -ne "COMPLETED" }

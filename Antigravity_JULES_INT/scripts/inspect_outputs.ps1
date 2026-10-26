@@ -7,7 +7,7 @@ $headers = @{
 
 $taskId = "13857061048335159909"
 $url = "https://aida.googleapis.com/v1/swebot/tasks/$taskId"
-$res = Invoke-RestMethod -Uri $url -Method Get -Headers $headers
+$res = Invoke-JulesApiGet -Uri $url
 $t = $res.task
 foreach ($p in $t.psobject.Properties) {
     if ($p.Name -ne "activitySteps" -and $p.Name -ne "description") {

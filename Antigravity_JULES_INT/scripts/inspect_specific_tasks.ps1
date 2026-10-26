@@ -10,7 +10,7 @@ $taskIds = @("12796110786565823238", "18356220654205495654")
 foreach ($id in $taskIds) {
     Write-Host "`n=================== TASK $id ==================="
     $url = "https://aida.googleapis.com/v1/swebot/tasks/$id"
-    $res = Invoke-RestMethod -Uri $url -Method Get -Headers $headers
+    $res = Invoke-JulesApiGet -Uri $url
     $t = $res.task
     Write-Host "Title: $($t.suggestedTitle)"
     Write-Host "Status: $($t.taskStatus) / $($t.swebotTaskStatus)"

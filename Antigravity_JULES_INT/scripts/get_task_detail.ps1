@@ -9,7 +9,7 @@ $taskId = "13857061048335159909"
 $url = "https://aida.googleapis.com/v1/swebot/tasks/$taskId"
 
 try {
-    $res = Invoke-RestMethod -Uri $url -Method Get -Headers $headers
+    $res = Invoke-JulesApiGet -Uri $url
     Write-Host "Task Details for ${taskId}:"
     $res | ConvertTo-Json -Depth 6 | Write-Host
 } catch {

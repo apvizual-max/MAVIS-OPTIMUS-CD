@@ -7,7 +7,7 @@ $headers = @{
 
 $id = "12796110786565823238"
 $url = "https://aida.googleapis.com/v1/swebot/tasks/$id"
-$res = Invoke-RestMethod -Uri $url -Method Get -Headers $headers
+$res = Invoke-JulesApiGet -Uri $url
 $t = $res.task
 
 for ($i = $t.activitySteps.Count - 1; $i -ge 0; $i--) {
