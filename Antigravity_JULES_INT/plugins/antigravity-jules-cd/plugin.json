@@ -1,0 +1,13 @@
+{
+  "name": "antigravity-jules-cd",
+  "version": "1.0.0",
+  "description": "Antigravity plugin for Google Jules and GitHub Continuous Development (CD) lifecycle automation, fleet merging, and single-branch enforcement.",
+  "author": "Antigravity & AP-ID",
+  "keywords": [
+    "jules",
+    "github",
+    "continuous-development",
+    "fleet-sync",
+    "antigravity"
+  ]
+}
