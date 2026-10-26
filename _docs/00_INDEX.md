@@ -1,4 +1,4 @@
-﻿# 00_INDEX — 02_Areas/02-2-AI-SOT/02-2-7-AI-Optimus_CD/Mavis-Optimus-Continuous-Development/docs
+﻿# 00_INDEX — 02_Areas/02-2-AI-SOT/02-2-7-AI-Optimus_CD/Mavis-Optimus-Continuous-Development/_docs
 
 **9 fișiere · 59 KB · 0 subfoldere**
 
