@@ -35,7 +35,8 @@
 # ASCII ONLY: executed by Windows PowerShell 5.1.
 
 param(
-    [string]$ScriptsDir = ''
+    [string]$ScriptsDir = '',
+    [switch]$SkipProbes
 )
 
 $ErrorActionPreference = 'Stop'
@@ -112,6 +113,11 @@ foreach ($f in $files) {
     }
 }
 
+if ($SkipProbes) {
+    Write-Output 'NOTA: sondele de platforma au fost sarite (-SkipProbes). Doar verificarile statice au rulat.'
+}
+
+if (-not $SkipProbes) {
 # --- The idiom probe -----------------------------------------------------
 # A gate that has never been shown able to fail is a gate of unknown quality.
 # The probe writes a payload to stdout AND returns a failure code, exactly as
@@ -557,6 +563,7 @@ if ($installProbeOut -match 'PROBE_INSTALL_OK') {
 } else {
     $unknown++
     Write-Output ('UNKNOWN proba-instalare - proba nu a putut fi masurata (' + $installProbeOut.Trim() + ')')
+}
 }
 
 Write-Output ('FILES=' + $files.Count + ' PROBLEMS=' + $problems + ' UNKNOWN=' + $unknown)

@@ -1,4 +1,4 @@
-# jules_fleet_sync.ps1 — Antigravity Autonomous Continuous Development Engine
+# jules_fleet_sync.ps1 - Antigravity Autonomous Continuous Development Engine
 [CmdletBinding()]
 param(
     [string]$TargetRepo = "all",
@@ -46,7 +46,7 @@ foreach ($repo in $reposToProcess) {
     
     Write-Host "`n=== Processing Repository: $fullName (Base: $defaultBranch) ===" -ForegroundColor Cyan
     
-    # 1. Fetch Open PRs
+# 1. Fetch Open PRs
     $prsRaw = gh pr list --repo $fullName --state open --limit 50 --json number,title,headRefName,createdAt 2>$null
     $openPRs = if ($prsRaw) { $prsRaw | ConvertFrom-Json } else { @() }
     
@@ -71,9 +71,9 @@ foreach ($repo in $reposToProcess) {
         $prTitle = $pr.title
         $headBranch = $pr.headRefName
         
-        Write-Host "  -> Evaluating PR #$prNum : '$prTitle' (Branch: $headBranch)" -ForegroundColor White
+        Write-Host "-> Evaluating PR #$prNum : '$prTitle' (Branch: $headBranch)" -ForegroundColor White
         
-        # Check mergeability
+# Check mergeability
         $prDetailsRaw = gh pr view $prNum --repo $fullName --json mergeable,mergeStateStatus,files 2>$null
         $prDetails = if ($prDetailsRaw) { $prDetailsRaw | ConvertFrom-Json } else { $null }
         
@@ -87,7 +87,7 @@ foreach ($repo in $reposToProcess) {
             continue
         }
         
-        # Security scan on modified files
+# Security scan on modified files
         $hasSecretRisk = $false
         if ($prDetails -and $prDetails.files) {
             foreach ($f in $prDetails.files) {
@@ -106,11 +106,11 @@ foreach ($repo in $reposToProcess) {
             continue
         }
         
-        # Approve PR
+# Approve PR
         Write-Host "     [1/3] Approving PR #$prNum..." -ForegroundColor Gray
         gh pr review $prNum --repo $fullName --approve -b "Approved by Antigravity Autonomous CD Engine. Verification: Clean syntax, no conflicts." 2>$null
         
-        # Squash and Merge PR
+# Squash and Merge PR
         Write-Host "     [2/3] Squash-merging PR #$prNum into $defaultBranch..." -ForegroundColor Green
         $cleanTitle = $prTitle -replace '"', '\"'
         $subjectText = "Merge PR #${prNum}: $cleanTitle"
@@ -135,14 +135,14 @@ foreach ($repo in $reposToProcess) {
         }
     }
     
-    # 2. Enforce Single-Branch Invariant: Prune remote non-main branches
+# 2. Enforce Single-Branch Invariant: Prune remote non-main branches
     if (-not $SkipBranchPrune -and -not $DryRun) {
-        Write-Host "  -> Enforcing Single-Branch Invariant: Scanning for dead/stale remote branches..." -ForegroundColor Gray
+        Write-Host "-> Enforcing Single-Branch Invariant: Scanning for dead/stale remote branches..." -ForegroundColor Gray
         $branchesJson = gh api "repos/$fullName/branches" --paginate --jq ".[].name" 2>$null
         if ($branchesJson) {
             $staleBranches = @($branchesJson) | Where-Object { $_ -ne "main" -and $_ -ne "master" -and -not [string]::IsNullOrWhiteSpace($_) }
             
-            # Refresh active PR branches
+# Refresh active PR branches
             $remainingPRsRaw = gh pr list --repo $fullName --state open --limit 50 --json headRefName 2>$null
             $remainingPRs = if ($remainingPRsRaw) { $remainingPRsRaw | ConvertFrom-Json } else { @() }
             $activePRBranches = @($remainingPRs | ForEach-Object { $_.headRefName })
@@ -161,9 +161,9 @@ foreach ($repo in $reposToProcess) {
         }
     }
     
-    # 3. Synchronize JULES_HANDOFF.md Ledger on the repository
+# 3. Synchronize JULES_HANDOFF.md Ledger on the repository
     if (-not $DryRun -and $mergedPRRecords.Count -gt 0) {
-        Write-Host "  -> Updating JULES_HANDOFF.md ledger on $fullName..." -ForegroundColor Yellow
+        Write-Host "-> Updating JULES_HANDOFF.md ledger on $fullName..." -ForegroundColor Yellow
         $existingFile = gh api "repos/$fullName/contents/JULES_HANDOFF.md" 2>$null
         $sha = $null
         $contentStr = ""
@@ -181,13 +181,9 @@ foreach ($repo in $reposToProcess) {
 > **Repository:** $fullName  
 > **Primary Branch:** $defaultBranch (Sole active branch invariant)  
 > **Last Synchronized:** $((Get-Date).ToString("yyyy-MM-dd HH:mm:ss"))  
-> **Synchronized By:** Antigravity Autonomous CD Engine  
+> **Synchronized By:** Antigravity Autonomous CD Engine ---
 
----
-
-## 1. Repository CD Status & Architecture Overview
-
-- **Default Branch:** $defaultBranch
+## 1. Repository CD Status & Architecture Overview - **Default Branch:** $defaultBranch
 - **Active Jules Integration:** ENABLED
 - **Single-Branch Status:** Active
 - **Active CI / Linting Standard:** Clean syntax, no lingering merge markers, no unescaped secrets.

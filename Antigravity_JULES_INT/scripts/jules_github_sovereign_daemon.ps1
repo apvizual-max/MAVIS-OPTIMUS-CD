@@ -90,7 +90,7 @@ function Get-JulesToken {
         try {
             $parsed = ConvertFrom-Json $tokenJson
             if ($parsed.token.access_token) {
-                # Check expiration if available
+# Check expiration if available
                 if ($parsed.token.expiry) {
                     $exp = [DateTime]::Parse($parsed.token.expiry)
                     if ((Get-Date) -ge $exp) {
@@ -166,7 +166,7 @@ if ($julesToken) {
         Log-Message "Task Distribution: In-Progress: $inProgress | Awaiting Review: $awaitingReview | Completed: $completedCount"
 
         if ($totalTaskCount -ge 95) {
-            Log-Message "⚠️ RATE LIMIT / QUOTA CEILING REACHED ($totalTaskCount/$maxQuota). Entering Quota Preservation Mode."
+            Log-Message "RATE LIMIT / QUOTA CEILING REACHED ($totalTaskCount/$maxQuota). Entering Quota Preservation Mode."
             Log-Message "Strategy: No new tasks will be dispatched. Focusing exclusively on driving in-progress tasks to completion, approving feedback, merging PRs, and purging completed tasks."
         } else {
             Log-Message "Cloud capacity is healthy ($headroom task slots available for dispatch)."
@@ -183,7 +183,7 @@ if ($julesToken) {
                 $detail = Invoke-RestMethod -Uri $detailUrl -Method Get -Headers $julesHeaders
                 $t = $detail.task
                 
-                # Find step requiring response
+# Find step requiring response
                 $targetStep = $null
                 for ($i = $t.activitySteps.Count - 1; $i -ge 0; $i--) {
                     $step = $t.activitySteps[$i]
@@ -197,7 +197,7 @@ if ($julesToken) {
                     $question = $targetStep.agentActivity.agentMessaged.text
                     Log-Message "Task $($task.id) question snippet: $($question.Substring(0, [Math]::Min(120, $question.Length)))..."
                     
-                    # Autonomous sovereign response formulation
+# Autonomous sovereign response formulation
                     $autoAnswer = "Approved. Proceed with the proposed improvements, ensure clean cross-platform execution, run native tests, and submit the Pull Request."
                     $feedbackId = [Guid]::NewGuid().ToString().ToUpper()
 
@@ -244,14 +244,14 @@ try {
                 $repoTarget = "$RepoOwner/$rName"
                 Log-Message "Auditing & Processing $repoTarget PR #$prNum ('$($pr.title)')..."
 
-                # Engineering Second-Eye: Inspect diff summary
+# Engineering Second-Eye: Inspect diff summary
                 $diffSummary = gh pr diff $prNum -R $repoTarget --stat 2>$null
                 if ($diffSummary) {
                     $firstLine = ($diffSummary -split "`n")[0]
                     Log-Message "  Diff summary: $firstLine"
                 }
 
-                # Attempt squash merge
+# Attempt squash merge
                 $mergeSuccess = $false
                 try {
                     $out = gh pr merge $prNum -R $repoTarget --squash --delete-branch --admin 2>&1
@@ -261,7 +261,7 @@ try {
                     }
                 } catch { }
 
-                # If conflict or no-op, close superseded PR
+# If conflict or no-op, close superseded PR
                 if (-not $mergeSuccess) {
                     Log-Message "  PR #$prNum has conflicts or is a no-op. Closing superseded PR..."
                     gh pr close $prNum -R $repoTarget --delete-branch --comment "Closed superseded conflicting/no-op branch by Antigravity Autonomous Engine." 2>&1 | Out-Null
@@ -274,11 +274,11 @@ try {
         }
     } while ($openPrs.Count -gt 0 -and $loopCount -lt $maxLoops)
 
-    # Clear GitHub notifications badge and mark threads as DONE
+# Clear GitHub notifications badge and mark threads as DONE
     Log-Message "Clearing GitHub notifications and marking threads as DONE..."
     gh api --method PUT /notifications 2>&1 | Out-Null
     
-    # Exhaustively mark all notification threads as DONE (removes from GitHub web inbox)
+# Exhaustively mark all notification threads as DONE (removes from GitHub web inbox)
     $doneRound = 0
     do {
         $doneRound++
@@ -307,7 +307,7 @@ if ($julesToken) {
         $verifyRes = Invoke-RestMethod -Uri "https://aida.googleapis.com/v1/swebot/tasks" -Method Get -Headers $julesHeaders
         $allTasks = $verifyRes.tasks
 
-        # Find completed tasks lingering with isAwaitingReview = true, or completed/failed clutter
+# Find completed tasks lingering with isAwaitingReview = true, or completed/failed clutter
         $tasksToPurge = $allTasks | Where-Object { 
             ($_.isAwaitingReview -eq $true) -or 
             ($_.swebotTaskStatus -eq "SWEBOT_TASK_STATUS_COMPLETED") -or 
@@ -331,6 +331,27 @@ if ($julesToken) {
     } catch {
         Log-Message "Pass 3 Jules cleanup exception: $_"
     }
+}
+
+# ==========================================
+# PASS 4: SINGLE-BRANCH INVARIANT SWEEP
+# ==========================================
+Log-Message "--- PASS 4: Single-Branch Invariant sweep (orphan ephemeral branches) ---"
+$sweepScript = Join-Path $PSScriptRoot 'sweep-orphan-branches.ps1'
+if (Test-Path -LiteralPath $sweepScript) {
+    try {
+        $sweepOut = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $sweepScript -Apply 2>&1 | Out-String
+        $sweepCode = $LASTEXITCODE
+        $sweepText = $sweepOut.Trim()
+        if ($sweepText) { Log-Message $sweepText }
+        if ($sweepCode -ne 0) {
+            Log-Message "Pass 4 sweep reported exit code $sweepCode - invariant not fully restored."
+        }
+    } catch {
+        Log-Message "Pass 4 sweep exception: $_"
+    }
+} else {
+    Log-Message "Pass 4 sweep skipped: sweep-orphan-branches.ps1 not found."
 }
 
 Log-Message "=== Antigravity Sovereign Dual-Interface Sync Finished Successfully ==="

@@ -31,7 +31,7 @@ for ($i = 0; $i -lt $ids.Count; $i += $chunkSize) {
 }
 
 Write-Host "Purge complete. Verifying new task list..."
-$verifyRes = Invoke-RestMethod -Uri "https://aida.googleapis.com/v1/swebot/tasks" -Method Get -Headers $headers
+$verifyRes = Invoke-JulesApiGet -Uri "https://aida.googleapis.com/v1/swebot/tasks"
 $remainingAwaiting = $verifyRes.tasks | Where-Object { 
     $_.swebotTaskStatus -eq "SWEBOT_TASK_STATUS_COMPLETED" -and $_.isAwaitingReview -eq $true 
 }

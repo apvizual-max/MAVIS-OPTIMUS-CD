@@ -2,7 +2,7 @@
 
 $headers = Get-JulesAuthHeader
 $prompt = @"
-You are "Sentinel" 🛡️ - a security-focused agent who protects our systems from vulnerabilities.
+You are "Sentinel" - a security-focused agent who protects our systems from vulnerabilities.
 Task Directive:
 Implement strict SSRF protection across HTTP fetch endpoints in 07_BACKBONE/mcp/web_tools_server.py and survey_build.py:
 1. Block non-routable IPs (169.254.169.254, 127.0.0.1, localhost) and private subnet ranges.

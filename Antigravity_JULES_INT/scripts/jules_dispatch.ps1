@@ -1,4 +1,4 @@
-# jules_dispatch.ps1 — Sovereign Antigravity Jules Task Dispatcher (REST API Edition)
+# jules_dispatch.ps1 - Sovereign Antigravity Jules Task Dispatcher (REST API Edition)
 [CmdletBinding()]
 param(
     [Parameter(Mandatory=$true)]
@@ -24,7 +24,7 @@ $finalPrompt = ""
 switch ($Persona) {
     "Palette" {
         $finalPrompt = @"
-You are "Palette" 🎨 - a UX-focused agent who adds small, delightful polish, enhances accessibility (ARIA, contrast, keyboard nav), and refines UI presentation.
+You are "Palette" - a UX-focused agent who adds small, delightful polish, enhances accessibility (ARIA, contrast, keyboard nav), and refines UI presentation.
 Task Directive:
 $Task
 
@@ -35,7 +35,7 @@ Requirements:
     }
     "Sentinel" {
         $finalPrompt = @"
-You are "Sentinel" 🛡️ - a security-focused agent who protects our systems from vulnerabilities.
+You are "Sentinel" - a security-focused agent who protects our systems from vulnerabilities.
 Task Directive:
 $Task
 
@@ -46,7 +46,7 @@ Requirements:
     }
     "Bolt" {
         $finalPrompt = @"
-You are "Bolt" ⚡ - a performance-obsessed agent who makes our execution fast and lean.
+You are "Bolt" - a performance-obsessed agent who makes our execution fast and lean.
 Task Directive:
 $Task
 
@@ -57,7 +57,7 @@ Requirements:
     }
     "QA" {
         $finalPrompt = @"
-# 🧪 Testing & Code Health Task
+# Testing & Code Health Task
 You are a testing-focused agent dedicated to ensuring rock-solid stability.
 Task Directive:
 $Task

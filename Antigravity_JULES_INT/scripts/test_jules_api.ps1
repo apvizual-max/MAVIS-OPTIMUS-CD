@@ -1,14 +1,6 @@
-. "$PSScriptRoot\test_cred.ps1"
+. "$PSScriptRoot\jules-guard.ps1"
 
-if (-not $parsed.access_token) {
-    Write-Host "No access token."
-    exit 1
-}
-
-$headers = @{
-    "Authorization" = "Bearer $($parsed.access_token)"
-    "Content-Type" = "application/json"
-}
+$headers = Get-JulesAuthHeader
 
 try {
     $res = Invoke-JulesApiGet -Uri "https://aida.googleapis.com/v1/swebot/tasks"

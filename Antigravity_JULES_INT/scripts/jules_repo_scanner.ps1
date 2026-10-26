@@ -1,4 +1,4 @@
-# jules_repo_scanner.ps1 — Antigravity Fleet Scanner for Jules & GitHub Repos
+# jules_repo_scanner.ps1 - Antigravity Fleet Scanner for Jules & GitHub Repos
 [CmdletBinding()]
 param(
     [string]$Owner = "apvizual-max",
@@ -39,7 +39,7 @@ foreach ($repo in $repos) {
     
     Write-Host "Scanning $fullName..." -ForegroundColor Gray
     
-    # Check open PRs
+# Check open PRs
     $openPRs = @()
     $prsRaw = gh pr list --repo $fullName --state open --limit 50 --json number,title,headRefName,createdAt 2>$null
     if ($prsRaw) {
@@ -58,7 +58,7 @@ foreach ($repo in $repos) {
     }
     $totalJulesPRs += $julesPRCount
     
-    # Check remote branches
+# Check remote branches
     $branchesJson = gh api "repos/$fullName/branches" --paginate --jq ".[].name" 2>$null
     $nonMainBranches = if ($branchesJson) {
         @($branchesJson) | Where-Object { $_ -ne "main" -and $_ -ne "master" -and -not [string]::IsNullOrWhiteSpace($_) }
@@ -68,7 +68,7 @@ foreach ($repo in $repos) {
     $branchCount = if ($nonMainBranches) { @($nonMainBranches).Count } else { 0 }
     $totalStaleBranches += $branchCount
     
-    # Check JULES_HANDOFF.md existence
+# Check JULES_HANDOFF.md existence
     $hasHandoff = "Missing"
     $null = gh api "repos/$fullName/contents/JULES_HANDOFF.md" 2>$null
     if ($LASTEXITCODE -eq 0) {
