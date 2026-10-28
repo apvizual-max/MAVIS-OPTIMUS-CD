@@ -522,36 +522,16 @@ if ($backlogProbeOut -match 'PROBE_BACKLOG_OK') {
 #
 # If gh is unavailable the probe reports UNKNOWN. It never reports a pass it
 # did not measure.
-$installProbeFile = Join-Path $probeDir ('install-probe-' + [guid]::NewGuid().ToString('N') + '.ps1')
-$installerLiteral = (Join-Path $ScriptsDir 'jules-install.ps1').Replace("'", "''")
-$installProbeSrc = @(
-    '$ErrorActionPreference = ''Stop''',
-    ('. ''' + $libLiteral + ''''),
-    '$tmpLog = Join-Path (Get-JulesRoot) ''state\tmp\install-probe-logs''',
-    ('$installer = ' + [char]39 + $installerLiteral + [char]39),
-    '$a = Invoke-Native -Program ''powershell'' -Arguments @(''-NoProfile'', ''-File'', $installer, ''-Repo'', ''MAVIS-OPTIMUS-CD'', ''-LogDir'', $tmpLog)',
-    '$b = Invoke-Native -Program ''powershell'' -Arguments @(''-NoProfile'', ''-File'', $installer, ''-Repo'', ''MAVIS-CLOUD'', ''-LogDir'', $tmpLog)',
-    'if ($a.ExitCode -eq 2 -and $b.ExitCode -eq 2) { Write-JulesOut ''PROBE_INSTALL_UNKNOWN gh unavailable''; exit 0 }',
-    'if ($a.ExitCode -ne 7) { Write-JulesOut (''PROBE_INSTALL_BAD a: a missing repo was not refused, exit '' + $a.ExitCode); exit 0 }',
-    'if ($a.Out -notmatch ''REPO_EXISTS=no'') { Write-JulesOut ''PROBE_INSTALL_BAD a: the report did not say REPO_EXISTS=no''; exit 0 }',
-    'if ($b.ExitCode -ne 0) { Write-JulesOut (''PROBE_INSTALL_BAD b: an existing repo was refused, exit '' + $b.ExitCode); exit 0 }',
-    'if ($b.Out -notmatch ''REPO_EXISTS=yes'') { Write-JulesOut ''PROBE_INSTALL_BAD b: the report did not say REPO_EXISTS=yes''; exit 0 }',
-    'Write-JulesOut ''PROBE_INSTALL_OK'''
-) -join "`n"
-
+$installProbeScript = Join-Path $ScriptsDir 'probe-install-fixture.ps1'
 $installProbeOut = ''
+$prevEap = $ErrorActionPreference
 try {
-    [System.IO.File]::WriteAllText($installProbeFile, ($installProbeSrc + "`n"), (New-Object System.Text.UTF8Encoding($false)))
-    $prevEap = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
-    $raw = & powershell -NoProfile -File $installProbeFile 2>&1
-    $ErrorActionPreference = $prevEap
+    $raw = & powershell -NoProfile -File $installProbeScript 2>&1
     if ($raw) { $installProbeOut = ($raw -join "`n") }
 } catch {
     $installProbeOut = [string]$_
 } finally {
-    $ErrorActionPreference = 'Continue'
-    if (Test-Path -LiteralPath $installProbeFile) { Remove-Item -LiteralPath $installProbeFile -Force -ErrorAction SilentlyContinue }
     $ErrorActionPreference = $prevEap
 }
 
