@@ -8,7 +8,7 @@
     Pass 1: Jules Task Discovery, Quota & Capacity Audit (out of 100), and Autonomous Feedback Unblocking (:interact API)
     Pass 2: Audits, squash-merges, prunes branches, and cleans all open GitHub PRs & notifications
     Pass 3: Purges lingering "Ready for review" completed tasks from Jules cloud dashboard
-    Pass 4: Logs full forensic execution to SOVEREIGN_MAINTENANCE_LOG.md
+    Pass 4: Single-Branch Invariant sweep (orphan ephemeral branches); the full forensic execution is logged to SOVEREIGN_MAINTENANCE_LOG.md
 #>
 
 [CmdletBinding()]
@@ -19,7 +19,7 @@ param(
 
 $ErrorActionPreference = "Continue"
 $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-$logDir = "C:\Users\apviz\Documents\Antigravity_Folder\Antigravity_Projects\Antigravity_JULES_INT\reports"
+$logDir = Join-Path (Split-Path -Parent $PSScriptRoot) 'reports'
 if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir -Force | Out-Null }
 $logFile = Join-Path $logDir "SOVEREIGN_MAINTENANCE_LOG.md"
 

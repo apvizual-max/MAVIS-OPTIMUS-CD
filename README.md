@@ -100,7 +100,7 @@ Pentru a declanșa imediat sincronizarea completă pe cele 3 interfețe:
    ```powershell
    & "C:\Users\apviz\Documents\Antigravity_Folder\Antigravity_Projects\Optimus_CD (by Jules)\scripts\run_sovereign_sync.bat"
    ```
-2. **Silențios în fundal (Windows Scheduled Task la 04:00 AM):**
+2. **Silențios în fundal (Windows Scheduled Task la 03:00 AM):**
    ```powershell
    wscript.exe "C:\Users\apviz\Documents\Antigravity_Folder\Antigravity_Projects\Optimus_CD (by Jules)\scripts\start_sovereign_sync_silent.vbs"
    ```

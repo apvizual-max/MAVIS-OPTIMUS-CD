@@ -2,7 +2,7 @@
 [CmdletBinding()]
 param(
     [string]$Owner = "apvizual-max",
-    [string]$ReportPath = "C:\Users\apviz\Documents\Antigravity_Folder\Antigravity_Projects\Antigravity_JULES_INT\reports\FLEET_STATUS_REPORT.md"
+    [string]$ReportPath = (Join-Path (Split-Path -Parent $PSScriptRoot) 'reports\FLEET_STATUS_REPORT.md')
 )
 
 Write-Host "=== Antigravity Jules Fleet Scanner ===" -ForegroundColor Cyan

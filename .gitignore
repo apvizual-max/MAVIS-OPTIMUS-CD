@@ -16,3 +16,8 @@ _GitHub-Main_Repos-Local-Temp/
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# Session transcripts are working artifacts, not sources. They contain captured
+# tool output (including credential echoes), so they are kept on disk and
+# out of the published history.
+transcripts/

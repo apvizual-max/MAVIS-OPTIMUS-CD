@@ -1,13 +1,13 @@
 ﻿# 00_INDEX — 02_Areas/02-2-AI-SOT/CASA/OPTIMUS - Prime/Optimus_CD (by Jules)/scripts
 
-**52 fișiere · 223 KB · 0 subfoldere**
+**53 fișiere · 227 KB · 0 subfoldere**
 
 > Generat automat de `02_Areas/02-2-AI-SOT/02-2-1-AI-Kit/AI-Kit_manual/build-index.ps1` și `align-index.ps1`. Nu edita manual — rulează scriptul din nou.
 > Randul **De ce e aici** de mai sus, daca exista, se pastreaza la fiecare regenerare.
 
 ## Ce e aici
 
-Cele mai frecvente două extensii sunt `.ps1` (50 din 52 fișiere) și `.bat` (1 din 52 fișiere). Cel mai mare element din folder e `jules-lib.ps1` (37 KB)
+Cele mai frecvente două extensii sunt `.ps1` (51 din 53 fișiere) și `.bat` (1 din 53 fișiere). Cel mai mare element din folder e `jules-lib.ps1` (37 KB)
 
 ## Cuvinte cheie
 
@@ -41,8 +41,8 @@ Cele mai frecvente două extensii sunt `.ps1` (50 din 52 fișiere) și `.bat` (1
 | `inspect_specific_tasks.ps1` | 785 B | 2026-10-27 |
 | `jules_dispatch.ps1` | 5 KB | 2026-10-27 |
 | `jules_fleet_sync.ps1` | 11 KB | 2026-10-27 |
-| `jules_github_sovereign_daemon.ps1` | 15 KB | 2026-10-27 |
-| `jules_repo_scanner.ps1` | 4 KB | 2026-10-27 |
+| `jules_github_sovereign_daemon.ps1` | 15 KB | 2026-10-28 |
+| `jules_repo_scanner.ps1` | 4 KB | 2026-10-28 |
 | `jules-adapt.ps1` | 19 KB | 2026-10-22 |
 | `jules-daily.ps1` | 8 KB | 2026-10-22 |
 | `jules-dispatch.ps1` | 9 KB | 2026-10-22 |
@@ -56,10 +56,10 @@ Cele mai frecvente două extensii sunt `.ps1` (50 din 52 fișiere) și `.bat` (1
 | `list_github_prs.ps1` | 321 B | 2026-10-24 |
 | `probe-false-zero.ps1` | 3 KB | 2026-10-27 |
 | `purge_completed_awaiting_tasks.ps1` | 1 KB | 2026-10-27 |
-| `register_task.ps1` | 657 B | 2026-10-24 |
+| `register_task.ps1` | 2 KB | 2026-10-28 |
 | `run_sovereign_sync.bat` | 712 B | 2026-10-24 |
 | `run-jules-daily-logged.ps1` | 3 KB | 2026-10-22 |
-| `start_sovereign_sync_silent.vbs` | 300 B | 2026-10-24 |
+| `start_sovereign_sync_silent.vbs` | 957 B | 2026-10-28 |
 | `sweep-orphan-branches.ps1` | 4 KB | 2026-10-27 |
 | `test_batch_delete.ps1` | 711 B | 2026-10-27 |
 | `test_create_task_api.ps1` | 1 KB | 2026-10-27 |
@@ -69,4 +69,5 @@ Cele mai frecvente două extensii sunt `.ps1` (50 din 52 fișiere) și `.bat` (1
 | `test_send_feedback.ps1` | 1 KB | 2026-10-27 |
 | `test_task_activities.ps1` | 486 B | 2026-10-27 |
 | `unblock_task_1835.ps1` | 863 B | 2026-10-27 |
+| `vault_mount_health.ps1` | 2 KB | 2026-10-28 |
 

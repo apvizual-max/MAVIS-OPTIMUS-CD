@@ -1,13 +1,13 @@
 ﻿# 00_INDEX — 02_Areas/02-2-AI-SOT/CASA/OPTIMUS - Prime/Optimus_CD (by Jules)/logs
 
-**10 fișiere · 701 KB · 0 subfoldere**
+**11 fișiere · 702 KB · 0 subfoldere**
 
 > Generat automat de `02_Areas/02-2-AI-SOT/02-2-1-AI-Kit/AI-Kit_manual/build-index.ps1` și `align-index.ps1`. Nu edita manual — rulează scriptul din nou.
 > Randul **De ce e aici** de mai sus, daca exista, se pastreaza la fiecare regenerare.
 
 ## Ce e aici
 
-Singura extensie prezentă e `.log` (10 din 10 fișiere). Cel mai mare element din folder e `jules-verify-2026-10-22.log` (420 KB)
+Singura extensie prezentă e `.log` (11 din 11 fișiere). Cel mai mare element din folder e `jules-verify-2026-10-22.log` (420 KB)
 
 ## Cuvinte cheie
 
@@ -27,4 +27,5 @@ Singura extensie prezentă e `.log` (10 din 10 fișiere). Cel mai mare element d
 | `jules-triage-2026-10-23.log` | 20 KB | 2026-10-23 |
 | `jules-verify-2026-10-22.log` | 420 KB | 2026-10-22 |
 | `jules-verify-2026-10-23.log` | 25 KB | 2026-10-23 |
+| `vault-mount-health.log` | 189 B | 2026-10-28 |
 
