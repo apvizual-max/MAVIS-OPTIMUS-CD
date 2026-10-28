@@ -1,0 +1,189 @@
+﻿[2026-10-28 21:39:38] [session 0] mount-kv: KV root   = E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:39:38] [session 0] mount-kv: drive     = X:
+[2026-10-28 21:39:38] [session 0] mount-kv: session   = 0
+[2026-10-28 21:39:38] [session 0] STEP 1/2 trying a directory junction at X:\ (machine wide, needs a parent path)
+[2026-10-28 21:39:38] [session 0] INFO junction via New-Item failed: Cannot find drive. A drive with the name 'X' does not exist.
+[2026-10-28 21:39:38] [session 0] INFO junction via mklink: The system cannot find the path specified.
+[2026-10-28 21:39:38] [session 0] STEP 2/2 trying subst X: "E:\Google\GDrive\GDrive-Second_Brain_PKMS" (measured to work without elevation)
+[2026-10-28 21:39:38] [session 0] OK   drive root resolves - X:\
+[2026-10-28 21:39:38] [session 0] OK   INDEX CENTRAL.md present - X:\INDEX CENTRAL.md
+[2026-10-28 21:39:38] [session 0] OK   00_Inbox present - X:\00_Inbox
+[2026-10-28 21:39:38] [session 0] OK   resolves to the KV root - actual=E:\Google\GDrive\GDrive-Second_Brain_PKMS expected=E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:39:38] [session 0] VERDICT MOUNTED - X: is the PKMS KV root (kind=subst, verified)
+[2026-10-28 21:39:38] [session 0] STEP 3/3 propagating the mapping to the console session (this session is 0)
+[2026-10-28 21:39:39] [session 0] INFO cannot query the console user token (Win32 1314) - the mapping stays valid for this session only
+[2026-10-28 21:41:27] [session 0] mount-kv: KV root   = E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:41:27] [session 0] mount-kv: drive     = X:
+[2026-10-28 21:41:27] [session 0] mount-kv: session   = 0
+[2026-10-28 21:41:27] [session 0] STEP 1/2 trying a directory junction at X:\ (machine wide, needs a parent path)
+[2026-10-28 21:41:27] [session 0] INFO junction via New-Item failed: Cannot find drive. A drive with the name 'X' does not exist.
+[2026-10-28 21:41:27] [session 0] INFO junction via mklink: The system cannot find the path specified.
+[2026-10-28 21:41:27] [session 0] STEP 2/2 trying subst X: "E:\Google\GDrive\GDrive-Second_Brain_PKMS" (measured to work without elevation)
+[2026-10-28 21:41:27] [session 0] OK   drive root resolves - X:\
+[2026-10-28 21:41:27] [session 0] OK   INDEX CENTRAL.md present - X:\INDEX CENTRAL.md
+[2026-10-28 21:41:27] [session 0] OK   00_Inbox present - X:\00_Inbox
+[2026-10-28 21:41:27] [session 0] OK   resolves to the KV root - actual=E:\Google\GDrive\GDrive-Second_Brain_PKMS expected=E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:41:27] [session 0] VERDICT MOUNTED - X: is the PKMS KV root (kind=subst, verified)
+[2026-10-28 21:41:27] [session 0] STEP 3/3 propagating the mapping to the console session (this session is 0)
+[2026-10-28 21:41:28] [session 0] INFO WTSQueryUserToken refused (Win32 1314) - trying the console user own process token
+[2026-10-28 21:43:07] [session 0] mount-kv: KV root   = E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:43:07] [session 0] mount-kv: drive     = X:
+[2026-10-28 21:43:07] [session 0] mount-kv: session   = 0
+[2026-10-28 21:43:07] [session 0] STEP 1/2 trying a directory junction at X:\ (machine wide, needs a parent path)
+[2026-10-28 21:43:07] [session 0] INFO junction via New-Item failed: Cannot find drive. A drive with the name 'X' does not exist.
+[2026-10-28 21:43:07] [session 0] INFO junction via mklink: The system cannot find the path specified.
+[2026-10-28 21:43:07] [session 0] STEP 2/2 trying subst X: "E:\Google\GDrive\GDrive-Second_Brain_PKMS" (measured to work without elevation)
+[2026-10-28 21:43:07] [session 0] OK   drive root resolves - X:\
+[2026-10-28 21:43:07] [session 0] OK   INDEX CENTRAL.md present - X:\INDEX CENTRAL.md
+[2026-10-28 21:43:07] [session 0] OK   00_Inbox present - X:\00_Inbox
+[2026-10-28 21:43:07] [session 0] OK   resolves to the KV root - actual=E:\Google\GDrive\GDrive-Second_Brain_PKMS expected=E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:43:08] [session 0] VERDICT MOUNTED - X: is the PKMS KV root (kind=subst, verified)
+[2026-10-28 21:43:08] [session 0] STEP 3/3 propagating the mapping to the console session (this session is 0)
+[2026-10-28 21:43:08] [session 0] INFO WTSQueryUserToken refused (Win32 1314) - trying the console user own process token
+[2026-10-28 21:43:08] [session 0] INFO using the console process explorer (pid 10776) as the token source
+[2026-10-28 21:43:08] [session 0] INFO cross session propagation stopped: Exception calling "DuplicateTokenEx" with "6" argument(s): "Unable to find an entry point named 'DuplicateTokenEx' in DLL 'kernel32.dll'."
+[2026-10-28 21:44:04] [session 0] mount-kv: KV root   = E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:44:04] [session 0] mount-kv: drive     = X:
+[2026-10-28 21:44:04] [session 0] mount-kv: session   = 0
+[2026-10-28 21:44:04] [session 0] STEP 1/2 trying a directory junction at X:\ (machine wide, needs a parent path)
+[2026-10-28 21:44:04] [session 0] INFO junction via New-Item failed: Cannot find drive. A drive with the name 'X' does not exist.
+[2026-10-28 21:44:04] [session 0] INFO junction via mklink: The system cannot find the path specified.
+[2026-10-28 21:44:04] [session 0] STEP 2/2 trying subst X: "E:\Google\GDrive\GDrive-Second_Brain_PKMS" (measured to work without elevation)
+[2026-10-28 21:44:04] [session 0] OK   drive root resolves - X:\
+[2026-10-28 21:44:04] [session 0] OK   INDEX CENTRAL.md present - X:\INDEX CENTRAL.md
+[2026-10-28 21:44:04] [session 0] OK   00_Inbox present - X:\00_Inbox
+[2026-10-28 21:44:04] [session 0] OK   resolves to the KV root - actual=E:\Google\GDrive\GDrive-Second_Brain_PKMS expected=E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:44:04] [session 0] VERDICT MOUNTED - X: is the PKMS KV root (kind=subst, verified)
+[2026-10-28 21:44:04] [session 0] STEP 3/3 propagating the mapping to the console session (this session is 0)
+[2026-10-28 21:44:04] [session 0] INFO WTSQueryUserToken refused (Win32 1314) - trying the console user own process token
+[2026-10-28 21:44:04] [session 0] INFO using the console process explorer (pid 10776) as the token source
+[2026-10-28 21:44:04] [session 0] INFO cannot start the helper in the console session (Win32 123) - the mapping stays valid for this session only
+[2026-10-28 21:44:04] [session 0] INFO cross session propagation stopped: Exception calling "FreeEnvironmentBlock" with "1" argument(s): "Unable to find an entry point named 'FreeEnvironmentBlock' in DLL 'kernel32.dll'."
+[2026-10-28 21:45:04] [session 0] mount-kv: KV root   = E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:45:04] [session 0] mount-kv: drive     = X:
+[2026-10-28 21:45:04] [session 0] mount-kv: session   = 0
+[2026-10-28 21:45:04] [session 0] STEP 1/2 trying a directory junction at X:\ (machine wide, needs a parent path)
+[2026-10-28 21:45:04] [session 0] INFO junction via New-Item failed: Cannot find drive. A drive with the name 'X' does not exist.
+[2026-10-28 21:45:04] [session 0] INFO junction via mklink: The system cannot find the path specified.
+[2026-10-28 21:45:04] [session 0] STEP 2/2 trying subst X: "E:\Google\GDrive\GDrive-Second_Brain_PKMS" (measured to work without elevation)
+[2026-10-28 21:45:05] [session 0] OK   drive root resolves - X:\
+[2026-10-28 21:45:05] [session 0] OK   INDEX CENTRAL.md present - X:\INDEX CENTRAL.md
+[2026-10-28 21:45:05] [session 0] OK   00_Inbox present - X:\00_Inbox
+[2026-10-28 21:45:05] [session 0] OK   resolves to the KV root - actual=E:\Google\GDrive\GDrive-Second_Brain_PKMS expected=E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:45:05] [session 0] VERDICT MOUNTED - X: is the PKMS KV root (kind=subst, verified)
+[2026-10-28 21:45:05] [session 0] STEP 3/3 propagating the mapping to the console session (this session is 0)
+[2026-10-28 21:45:05] [session 0] INFO WTSQueryUserToken refused (Win32 1314) - trying the console user own process token
+[2026-10-28 21:45:05] [session 0] INFO using the console process explorer (pid 10776) as the token source
+[2026-10-28 21:45:05] [session 0] INFO cannot start the helper in the console session (Win32 123) - the mapping stays valid for this session only
+[2026-10-28 21:45:05] [session 0] INFO cross session propagation stopped: Exception calling "FreeEnvironmentBlock" with "1" argument(s): "Unable to find an entry point named 'FreeEnvironmentBlock' in DLL 'kernel32.dll'."
+[2026-10-28 21:46:30] [session 1] mount-kv: KV root   = E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:46:30] [session 1] mount-kv: drive     = X:
+[2026-10-28 21:46:30] [session 1] mount-kv: session   = 1
+[2026-10-28 21:46:31] [session 1] OK   X: is already mapped to the KV root (kind=subst)
+[2026-10-28 21:46:31] [session 1] OK   drive root resolves - X:\
+[2026-10-28 21:46:31] [session 1] OK   INDEX CENTRAL.md present - X:\INDEX CENTRAL.md
+[2026-10-28 21:46:31] [session 1] OK   00_Inbox present - X:\00_Inbox
+[2026-10-28 21:46:31] [session 1] OK   resolves to the KV root - actual=E:\Google\GDrive\GDrive-Second_Brain_PKMS expected=E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:46:31] [session 1] VERDICT MOUNTED - X: is the PKMS KV root (kind=subst, verified)
+[2026-10-28 21:46:31] [session 1] WARNING subst is session scoped - this mapping is visible only in this session
+[2026-10-28 21:46:33] [session 1] mount-kv: KV root   = E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:46:33] [session 1] mount-kv: drive     = X:
+[2026-10-28 21:46:33] [session 1] mount-kv: session   = 1
+[2026-10-28 21:46:35] [session 1] FAIL could not remove the mapping on X:
+[2026-10-28 21:46:37] [session 1] mount-kv: KV root   = E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:46:37] [session 1] mount-kv: drive     = X:
+[2026-10-28 21:46:37] [session 1] mount-kv: session   = 1
+[2026-10-28 21:46:38] [session 1] OK   X: is already mapped to the KV root (kind=subst)
+[2026-10-28 21:46:38] [session 1] OK   drive root resolves - X:\
+[2026-10-28 21:46:38] [session 1] OK   INDEX CENTRAL.md present - X:\INDEX CENTRAL.md
+[2026-10-28 21:46:38] [session 1] OK   00_Inbox present - X:\00_Inbox
+[2026-10-28 21:46:38] [session 1] OK   resolves to the KV root - actual=E:\Google\GDrive\GDrive-Second_Brain_PKMS expected=E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:46:38] [session 1] VERDICT MOUNTED - X: is the PKMS KV root (kind=subst, verified)
+[2026-10-28 21:46:38] [session 1] WARNING subst is session scoped - this mapping is visible only in this session
+[2026-10-28 21:50:15] [session 1] mount-kv: KV root   = E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:50:15] [session 1] mount-kv: drive     = X:
+[2026-10-28 21:50:15] [session 1] mount-kv: session   = 1
+[2026-10-28 21:50:15] [session 1] OK   X: is already mapped to the KV root (kind=mapped)
+[2026-10-28 21:50:15] [session 1] OK   drive root resolves - X:\
+[2026-10-28 21:50:15] [session 1] OK   INDEX CENTRAL.md present - X:\INDEX CENTRAL.md
+[2026-10-28 21:50:15] [session 1] OK   00_Inbox present - X:\00_Inbox
+[2026-10-28 21:50:15] [session 1] OK   resolves to the KV root - actual=E:\Google\GDrive\GDrive-Second_Brain_PKMS expected=E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:50:15] [session 1] VERDICT MOUNTED - X: is the PKMS KV root (kind=mapped, verified)
+[2026-10-28 21:50:15] [session 1] OK   the mapping resolves to the KV root from this session
+[2026-10-28 21:50:17] [session 1] mount-kv: KV root   = E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:50:17] [session 1] mount-kv: drive     = X:
+[2026-10-28 21:50:17] [session 1] mount-kv: session   = 1
+[2026-10-28 21:50:17] [session 1] OK   X: is already mapped to the KV root (kind=mapped)
+[2026-10-28 21:50:17] [session 1] OK   drive root resolves - X:\
+[2026-10-28 21:50:17] [session 1] OK   INDEX CENTRAL.md present - X:\INDEX CENTRAL.md
+[2026-10-28 21:50:17] [session 1] OK   00_Inbox present - X:\00_Inbox
+[2026-10-28 21:50:17] [session 1] OK   resolves to the KV root - actual=E:\Google\GDrive\GDrive-Second_Brain_PKMS expected=E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:50:17] [session 1] VERDICT MOUNTED - X: is the PKMS KV root (kind=mapped, verified)
+[2026-10-28 21:50:17] [session 1] OK   the mapping resolves to the KV root from this session
+[2026-10-28 21:50:28] [session 1] mount-kv: KV root   = E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:50:28] [session 1] mount-kv: drive     = X:
+[2026-10-28 21:50:28] [session 1] mount-kv: session   = 1
+[2026-10-28 21:50:29] [session 1] OK   mapping on X: removed - nothing inside the KV was touched
+[2026-10-28 21:50:31] [session 1] mount-kv: KV root   = E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:50:31] [session 1] mount-kv: drive     = X:
+[2026-10-28 21:50:31] [session 1] mount-kv: session   = 1
+[2026-10-28 21:50:31] [session 1] STEP 1/3 trying a directory junction at X:\ (machine wide, needs a parent path)
+[2026-10-28 21:50:31] [session 1] INFO junction via New-Item failed: Cannot find drive. A drive with the name 'X' does not exist.
+[2026-10-28 21:50:31] [session 1] INFO junction via mklink: The system cannot find the path specified.
+[2026-10-28 21:50:31] [session 1] STEP 2/3 creating the global DOS device (measured to work without elevation, visible in every session)
+[2026-10-28 21:50:31] [session 1] OK   drive root resolves - X:\
+[2026-10-28 21:50:31] [session 1] OK   INDEX CENTRAL.md present - X:\INDEX CENTRAL.md
+[2026-10-28 21:50:31] [session 1] OK   00_Inbox present - X:\00_Inbox
+[2026-10-28 21:50:31] [session 1] OK   resolves to the KV root - actual=E:\Google\GDrive\GDrive-Second_Brain_PKMS expected=E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:50:31] [session 1] VERDICT MOUNTED - X: is the PKMS KV root (kind=global-device, verified)
+[2026-10-28 21:50:31] [session 1] OK   the mapping is a global DOS device - visible to every session of this machine
+[2026-10-28 21:50:48] [session 1] mount-kv: KV root   = E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:50:48] [session 1] mount-kv: drive     = X:
+[2026-10-28 21:50:48] [session 1] mount-kv: session   = 1
+[2026-10-28 21:50:48] [session 1] OK   mapping on X: removed - nothing inside the KV was touched
+[2026-10-28 21:50:52] [session 1] mount-kv: KV root   = E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:50:52] [session 1] mount-kv: drive     = X:
+[2026-10-28 21:50:52] [session 1] mount-kv: session   = 1
+[2026-10-28 21:50:53] [session 1] STEP 1/3 trying a directory junction at X:\ (machine wide, needs a parent path)
+[2026-10-28 21:50:53] [session 1] INFO junction via New-Item failed: Cannot find drive. A drive with the name 'X' does not exist.
+[2026-10-28 21:50:53] [session 1] INFO junction via mklink: The system cannot find the path specified.
+[2026-10-28 21:50:53] [session 1] STEP 2/3 creating the global DOS device (measured to work without elevation, visible in every session)
+[2026-10-28 21:50:53] [session 1] OK   drive root resolves - X:\
+[2026-10-28 21:50:53] [session 1] OK   INDEX CENTRAL.md present - X:\INDEX CENTRAL.md
+[2026-10-28 21:50:53] [session 1] OK   00_Inbox present - X:\00_Inbox
+[2026-10-28 21:50:53] [session 1] OK   resolves to the KV root - actual=E:\Google\GDrive\GDrive-Second_Brain_PKMS expected=E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:50:53] [session 1] VERDICT MOUNTED - X: is the PKMS KV root (kind=global-device, verified)
+[2026-10-28 21:50:53] [session 1] OK   the mapping is a global DOS device - visible to every session of this machine
+[2026-10-28 21:51:07] [session 0] mount-kv: KV root   = E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:51:07] [session 0] mount-kv: drive     = X:
+[2026-10-28 21:51:07] [session 0] mount-kv: session   = 0
+[2026-10-28 21:51:09] [session 0] STEP 1/3 trying a directory junction at X:\ (machine wide, needs a parent path)
+[2026-10-28 21:51:09] [session 0] INFO junction via New-Item failed: Cannot find drive. A drive with the name 'X' does not exist.
+[2026-10-28 21:51:09] [session 0] INFO junction via mklink: The system cannot find the path specified.
+[2026-10-28 21:51:09] [session 0] STEP 2/3 creating the global DOS device (measured to work without elevation, visible in every session)
+[2026-10-28 21:51:10] [session 0] OK   drive root resolves - X:\
+[2026-10-28 21:51:10] [session 0] OK   INDEX CENTRAL.md present - X:\INDEX CENTRAL.md
+[2026-10-28 21:51:10] [session 0] OK   00_Inbox present - X:\00_Inbox
+[2026-10-28 21:51:10] [session 0] OK   resolves to the KV root - actual=E:\Google\GDrive\GDrive-Second_Brain_PKMS expected=E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:51:10] [session 0] VERDICT MOUNTED - X: is the PKMS KV root (kind=global-device, verified)
+[2026-10-28 21:51:10] [session 0] OK   the mapping is a global DOS device - visible to every session of this machine
+[2026-10-28 21:51:58] [session 1] mount-kv: KV root   = E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:51:58] [session 1] mount-kv: drive     = X:
+[2026-10-28 21:51:58] [session 1] mount-kv: session   = 1
+[2026-10-28 21:51:59] [session 1] OK   X: is already mapped to the KV root (kind=mapped)
+[2026-10-28 21:51:59] [session 1] OK   drive root resolves - X:\
+[2026-10-28 21:51:59] [session 1] OK   INDEX CENTRAL.md present - X:\INDEX CENTRAL.md
+[2026-10-28 21:51:59] [session 1] OK   00_Inbox present - X:\00_Inbox
+[2026-10-28 21:51:59] [session 1] OK   resolves to the KV root - actual=E:\Google\GDrive\GDrive-Second_Brain_PKMS expected=E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:51:59] [session 1] VERDICT MOUNTED - X: is the PKMS KV root (kind=mapped, verified)
+[2026-10-28 21:51:59] [session 1] OK   the mapping resolves to the KV root from this session
+[2026-10-28 21:52:01] [session 1] mount-kv: KV root   = E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:52:01] [session 1] mount-kv: drive     = X:
+[2026-10-28 21:52:01] [session 1] mount-kv: session   = 1
+[2026-10-28 21:52:01] [session 1] OK   X: is already mapped to the KV root (kind=mapped)
+[2026-10-28 21:52:01] [session 1] OK   drive root resolves - X:\
+[2026-10-28 21:52:01] [session 1] OK   INDEX CENTRAL.md present - X:\INDEX CENTRAL.md
+[2026-10-28 21:52:01] [session 1] OK   00_Inbox present - X:\00_Inbox
+[2026-10-28 21:52:01] [session 1] OK   resolves to the KV root - actual=E:\Google\GDrive\GDrive-Second_Brain_PKMS expected=E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:52:01] [session 1] VERDICT MOUNTED - X: is the PKMS KV root (kind=mapped, verified)
+[2026-10-28 21:52:01] [session 1] OK   the mapping resolves to the KV root from this session

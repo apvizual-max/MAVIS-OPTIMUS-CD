@@ -105,7 +105,23 @@ Say ('Flota: ' + $Repos.Count + ' repo-uri | mod: ' + $(if ($Apply) { 'APPLY' } 
 Say ''
 
 $tmpEnv = Join-Path $env:TEMP ('jules-deploy-' + [guid]::NewGuid().ToString('N') + '.env')
+$tmpPayload = Join-Path $env:TEMP ('jules-deploy-' + [guid]::NewGuid().ToString('N') + '.json')
 $tmpWritten = $false
+
+# MEASURED 2026-10-28: piping a JSON payload into `gh api --input -` from
+# Windows PowerShell 5.1 corrupts it - GitHub answers "Problems parsing JSON
+# (HTTP 400)". The same payload written to a UTF-8 file WITHOUT BOM and passed
+# with `--input <file>` is accepted. Every JSON write in this script goes
+# through a file, never through a pipe.
+function Send-JsonFile([string]$repo, [string]$path, [string]$method, [hashtable]$body) {
+    $json = $body | ConvertTo-Json -Depth 6
+    [System.IO.File]::WriteAllText($tmpPayload, $json, (New-Object System.Text.UTF8Encoding($false)))
+    $out = & gh api -X $method "repos/$repo/$path" --input $tmpPayload 2>&1
+    return @{
+        Code = $LASTEXITCODE
+        Out  = ($out | Out-String).Trim()
+    }
+}
 
 foreach ($repo in $Repos) {
     if (-not $IncludeExcluded -and ($Exclude -contains $repo)) {
@@ -125,12 +141,24 @@ foreach ($repo in $Repos) {
     } elseif (-not $Apply) {
         Skip $repo 'label-jules' 'ar fi creata (dry-run)'
     } else {
-        $labelBody = @{ name = 'jules'; color = '4B6BFB'; description = 'Trigger for Jules tasks. A label means a live task.' } | ConvertTo-Json
-        $out = $labelBody | & gh api -X POST "repos/$repo/labels" --input - 2>&1
-        if ($LASTEXITCODE -eq 0) { Ok $repo 'label-jules' 'creata' } else { Fail $repo 'label-jules' ('eroare: ' + ($out | Out-String).Trim()) }
+        $res = Send-JsonFile $repo 'labels' 'POST' @{ name = 'jules'; color = '4B6BFB'; description = 'Trigger for Jules tasks. A label means a live task.' }
+        if ($res.Code -eq 0) { Ok $repo 'label-jules' 'creata' } else { Fail $repo 'label-jules' ('eroare: ' + $res.Out) }
     }
 
     # 2) workflow jules.yml (create or update)
+    # The default branch is not always main - pkms-vault-automation uses
+    # master. Writing to the wrong branch is a 400, and a workflow sitting on
+    # a non-default branch never fires.
+    $branch = 'main'
+    $repoRaw = & gh api "repos/$repo" 2>$null
+    if ($repoRaw) {
+        try {
+            $db = [string](($repoRaw | ConvertFrom-Json).default_branch)
+            if ($db) { $branch = $db }
+        } catch {
+            $branch = 'main'
+        }
+    }
     $existing = & gh api "repos/$repo/contents/.github/workflows/jules.yml" 2>$null
     $sha = ''
     if ($existing) {
@@ -140,16 +168,14 @@ foreach ($repo in $Repos) {
         if (-not $Apply) {
             Skip $repo 'workflow' 'exista deja (dry-run: ar fi actualizat)'
         } else {
-            $payload = @{ message = 'CD: mecanism general Jules - push + @jules'; content = $workflowB64; branch = 'main'; sha = $sha } | ConvertTo-Json
-            $out = $payload | & gh api -X PUT "repos/$repo/contents/.github/workflows/jules.yml" --input - 2>&1
-            if ($LASTEXITCODE -eq 0) { Ok $repo 'workflow' 'actualizat' } else { Fail $repo 'workflow' ('eroare: ' + ($out | Out-String).Trim()) }
+            $res = Send-JsonFile $repo 'contents/.github/workflows/jules.yml' 'PUT' @{ message = 'CD: mecanism general Jules - push + @jules'; content = $workflowB64; branch = $branch; sha = $sha }
+            if ($res.Code -eq 0) { Ok $repo 'workflow' 'actualizat' } else { Fail $repo 'workflow' ('eroare: ' + $res.Out) }
         }
     } elseif (-not $Apply) {
         Skip $repo 'workflow' 'ar fi creat (dry-run)'
     } else {
-        $payload = @{ message = 'CD: mecanism general Jules - push + @jules'; content = $workflowB64; branch = 'main' } | ConvertTo-Json
-        $out = $payload | & gh api -X PUT "repos/$repo/contents/.github/workflows/jules.yml" --input - 2>&1
-        if ($LASTEXITCODE -eq 0) { Ok $repo 'workflow' 'creat' } else { Fail $repo 'workflow' ('eroare: ' + ($out | Out-String).Trim()) }
+        $res = Send-JsonFile $repo 'contents/.github/workflows/jules.yml' 'PUT' @{ message = 'CD: mecanism general Jules - push + @jules'; content = $workflowB64; branch = $branch }
+        if ($res.Code -eq 0) { Ok $repo 'workflow' 'creat' } else { Fail $repo 'workflow' ('eroare: ' + $res.Out) }
     }
 
     # 3) secret JULES_API_KEY

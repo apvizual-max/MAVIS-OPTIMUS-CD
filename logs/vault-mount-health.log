@@ -1,3 +1,30 @@
 ﻿[2026-10-28 11:07:40] OK   vault root reachable: E:\MINTE
 [2026-10-28 11:07:40] OK   Second Brain folder reachable: E:\MINTE\00_KV_SECOND BRAIN
 [2026-10-28 11:07:40] VAULT_PROBLEMS=0
+[2026-10-28 21:26:54] OK   vault root reachable: E:\MINTE
+[2026-10-28 21:26:54] OK   Second Brain folder reachable: E:\MINTE\00_KV_SECOND BRAIN
+[2026-10-28 21:26:54] VAULT_PROBLEMS=0
+[2026-10-28 21:50:46] OK   KV root reachable: E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:50:46] OK   drive mounted: X:
+[2026-10-28 21:50:46] OK   present through the mount: X:\INDEX CENTRAL.md
+[2026-10-28 21:50:46] OK   present through the mount: X:\00_Inbox
+[2026-10-28 21:50:46] OK   X: resolves to the KV root: E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:50:46] VAULT_PROBLEMS=0
+[2026-10-28 21:50:50] OK   KV root reachable: E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:50:50] FAIL drive not mounted: X:
+[2026-10-28 21:50:50] FAIL missing through the mount: X:\INDEX CENTRAL.md
+[2026-10-28 21:50:50] FAIL missing through the mount: X:\00_Inbox
+[2026-10-28 21:50:51] FAIL X: does not resolve to a known target (expected: E:\Google\GDrive\GDrive-Second_Brain_PKMS)
+[2026-10-28 21:50:51] VAULT_PROBLEMS=4
+[2026-10-28 21:50:55] OK   KV root reachable: E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:50:55] OK   drive mounted: X:
+[2026-10-28 21:50:55] OK   present through the mount: X:\INDEX CENTRAL.md
+[2026-10-28 21:50:55] OK   present through the mount: X:\00_Inbox
+[2026-10-28 21:50:55] OK   X: resolves to the KV root: E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:50:55] VAULT_PROBLEMS=0
+[2026-10-28 21:53:06] OK   KV root reachable: E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:53:06] OK   drive mounted: X:
+[2026-10-28 21:53:06] OK   present through the mount: X:\INDEX CENTRAL.md
+[2026-10-28 21:53:06] OK   present through the mount: X:\00_Inbox
+[2026-10-28 21:53:07] OK   X: resolves to the KV root: E:\Google\GDrive\GDrive-Second_Brain_PKMS
+[2026-10-28 21:53:07] VAULT_PROBLEMS=0

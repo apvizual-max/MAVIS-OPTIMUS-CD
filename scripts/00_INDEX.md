@@ -50,6 +50,8 @@ _Fiecare raft e legat la indexul lui. Un index care nu e legat nu e în arbore._
 | `jules_github_sovereign_daemon.ps1` | 15 KB | 2026-10-28 |
 | `jules_repo_scanner.ps1` | 4 KB | 2026-10-28 |
 | `jules-adapt.ps1` | 19 KB | 2026-10-22 |
+| `jules-autopilot.ps1` | 21 KB | 2026-10-28 |
+| `jules-autopilot-task.ps1` | 3 KB | 2026-10-28 |
 | `jules-daily.ps1` | 8 KB | 2026-10-22 |
 | `jules-dispatch.ps1` | 9 KB | 2026-10-22 |
 | `jules-guard.ps1` | 6 KB | 2026-10-27 |
@@ -60,6 +62,8 @@ _Fiecare raft e legat la indexul lui. Un index care nu e legat nu e în arbore._
 | `jules-triage.ps1` | 11 KB | 2026-10-22 |
 | `jules-verify.ps1` | 17 KB | 2026-10-22 |
 | `list_github_prs.ps1` | 321 B | 2026-10-24 |
+| `mount-kv.bat` | 591 B | 2026-10-28 |
+| `mount-kv.ps1` | 12 KB | 2026-10-28 |
 | `probe-false-zero.ps1` | 3 KB | 2026-10-27 |
 | `probe-install-fixture.ps1` | 5 KB | 2026-10-28 |
 | `purge_completed_awaiting_tasks.ps1` | 1 KB | 2026-10-27 |
@@ -76,5 +80,5 @@ _Fiecare raft e legat la indexul lui. Un index care nu e legat nu e în arbore._
 | `test_send_feedback.ps1` | 1 KB | 2026-10-27 |
 | `test_task_activities.ps1` | 486 B | 2026-10-27 |
 | `unblock_task_1835.ps1` | 863 B | 2026-10-27 |
-| `vault_mount_health.ps1` | 2 KB | 2026-10-28 |
+| `vault_mount_health.ps1` | 4 KB | 2026-10-28 |
 
