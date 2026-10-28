@@ -167,7 +167,6 @@ foreach ($repo in $Repos) {
         if ($res.Code -eq 0) { Ok $repo 'label-jules' 'creata' } else { Fail $repo 'label-jules' ('eroare: ' + $res.Out) }
     }
 
-    # 2) workflow jules.yml (create or update)
     # The default branch is not always main - pkms-vault-automation uses
     # master. Writing to the wrong branch is a 400, and a workflow sitting on
     # a non-default branch never fires.
@@ -181,30 +180,16 @@ foreach ($repo in $Repos) {
             $branch = 'main'
         }
     }
-    $existing = & gh api "repos/$repo/contents/.github/workflows/jules.yml" 2>$null
-    $sha = ''
-    if ($existing) {
-        try { $sha = [string](($existing | ConvertFrom-Json).sha) } catch { $sha = '' }
-    }
-    if ($sha) {
-        if (-not $Apply) {
-            Skip $repo 'workflow' 'exista deja (dry-run: ar fi actualizat)'
-        } else {
-            $res = Send-JsonFile $repo 'contents/.github/workflows/jules.yml' 'PUT' @{ message = 'CD: mecanism general Jules - push + @jules'; content = $workflowB64; branch = $branch; sha = $sha }
-            if ($res.Code -eq 0) { Ok $repo 'workflow' 'actualizat' } else { Fail $repo 'workflow' ('eroare: ' + $res.Out) }
-        }
-    } elseif (-not $Apply) {
-        Skip $repo 'workflow' 'ar fi creat (dry-run)'
-    } else {
-        $res = Send-JsonFile $repo 'contents/.github/workflows/jules.yml' 'PUT' @{ message = 'CD: mecanism general Jules - push + @jules'; content = $workflowB64; branch = $branch }
-        if ($res.Code -eq 0) { Ok $repo 'workflow' 'creat' } else { Fail $repo 'workflow' ('eroare: ' + $res.Out) }
-    }
 
-    # 2b) the LOCAL action .github/actions/jules/action.yaml
-    # The workflow references it, so it is not optional: a local action is read
-    # from the workspace and a missing one fails the run in 8 seconds. It is
-    # written BEFORE the workflow is written on a fresh repository, otherwise
-    # the first push after the install already breaks.
+    # 2) the LOCAL action .github/actions/jules/action.yaml
+    # It is written BEFORE the workflow, and the order is not cosmetic.
+    # MEASURED 2026-10-28 on hermes-local-backup: the workflow landed first
+    # (run 40783868698) and the push it triggered failed in 8 seconds with
+    # "Can't find 'action.yml', 'action.yaml' or 'Dockerfile' under
+    # .../.github/actions/jules" - the local action was not in the repository
+    # yet. The very next push (40783871184) was green, because by then the
+    # action was there. So the action goes first, and the workflow that
+    # references it goes second.
     $actionPath = 'contents/.github/actions/jules/action.yaml'
     $actionExisting = & gh api "repos/$repo/$actionPath" 2>$null
     $actionSha = ''
@@ -223,6 +208,26 @@ foreach ($repo in $Repos) {
     } else {
         $res = Send-JsonFile $repo $actionPath 'PUT' @{ message = 'CD: actiune Jules locala - promptul se citeste din fisier'; content = $actionB64; branch = $branch }
         if ($res.Code -eq 0) { Ok $repo 'actiune-locala' 'creata' } else { Fail $repo 'actiune-locala' ('eroare: ' + $res.Out) }
+    }
+
+    # 3) workflow jules.yml (create or update)
+    $existing = & gh api "repos/$repo/contents/.github/workflows/jules.yml" 2>$null
+    $sha = ''
+    if ($existing) {
+        try { $sha = [string](($existing | ConvertFrom-Json).sha) } catch { $sha = '' }
+    }
+    if ($sha) {
+        if (-not $Apply) {
+            Skip $repo 'workflow' 'exista deja (dry-run: ar fi actualizat)'
+        } else {
+            $res = Send-JsonFile $repo 'contents/.github/workflows/jules.yml' 'PUT' @{ message = 'CD: mecanism general Jules - push + @jules'; content = $workflowB64; branch = $branch; sha = $sha }
+            if ($res.Code -eq 0) { Ok $repo 'workflow' 'actualizat' } else { Fail $repo 'workflow' ('eroare: ' + $res.Out) }
+        }
+    } elseif (-not $Apply) {
+        Skip $repo 'workflow' 'ar fi creat (dry-run)'
+    } else {
+        $res = Send-JsonFile $repo 'contents/.github/workflows/jules.yml' 'PUT' @{ message = 'CD: mecanism general Jules - push + @jules'; content = $workflowB64; branch = $branch }
+        if ($res.Code -eq 0) { Ok $repo 'workflow' 'creat' } else { Fail $repo 'workflow' ('eroare: ' + $res.Out) }
     }
 
     # 3) secret JULES_API_KEY

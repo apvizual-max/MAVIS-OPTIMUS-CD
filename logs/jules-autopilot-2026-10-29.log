@@ -39,3 +39,16 @@
 [2026-10-29 00:51:11] 
 [2026-10-29 00:51:15]   sessions/12664247506806929640 (apvizual-max/Qwen-Ecosystem-Dashboard) intrebare: I have been investigating the codebase based on your instructions. I noticed there's a CI harness `_candidate-tcv-harness.js` which points to multiple UNKNOWN issues. The latest changes merged from PR #10 involved explic...
 [2026-10-29 00:51:20]     raspuns (:interact, pas 42a98beb): trimis
+[2026-10-29 00:58:30]     stare dupa raspuns: AWAITING_USER_FEEDBACK
+[2026-10-29 00:58:30]     (serverul a primit raspunsul, dar agentul nu s-a trezut - nu o marchez ca raspunsa)
+[2026-10-29 00:59:03]   sessions/3384046284391976636 (apvizual-max/MAVIS-OPTIMUS-CD) intrebare: I have completed replacing `powershell` with `pwsh` across the verification scripts, fixing `sh` vs `sh.exe`, and modifying `probe-install-fixture.ps1` and `jules-lib.ps1` (`Get-JulesPrs`) so they emit `UNKNOWN` instead ...
+[2026-10-29 00:59:03]     gate local pe apvizual-max/MAVIS-OPTIMUS-CD: UNKNOWN proba-backlog - proba nu a putut fi masurata (PROBE_BACKLOG_NOFALSIFY wide=13 narrow=13 api=13) | FILES=61 PROBLEMS=0 UNKNOWN=1 (exit=0)
+[2026-10-29 00:59:08]     raspuns (:interact, pas ee6f13cc): trimis
+[2026-10-29 00:59:27]     stare dupa raspuns: TREZIT(dev=3)
+[2026-10-29 00:59:27] 
+[2026-10-29 00:59:27] Rezultat: 1 sesiuni deblocate.
+[2026-10-29 01:06:07]   token OAuth expirat la 01:06:10 - reimprospatez
+[2026-10-29 01:06:16] Flota: 11 repo-uri | sesiuni blocate: 2 | mod: APPLY
+[2026-10-29 01:06:16] 
+[2026-10-29 01:06:21]   sessions/12664247506806929640 (apvizual-max/Qwen-Ecosystem-Dashboard) intrebare: I have been investigating the codebase based on your instructions. I noticed there's a CI harness `_candidate-tcv-harness.js` which points to multiple UNKNOWN issues. The latest changes merged from PR #10 involved explic...
+[2026-10-29 01:06:25]     raspuns (:interact, pas 42a98beb): trimis

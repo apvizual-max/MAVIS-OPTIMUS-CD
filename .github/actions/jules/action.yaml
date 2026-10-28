@@ -130,9 +130,39 @@ runs:
       env:
         JULES_API_KEY: ${{ inputs.jules_api_key }}
       run: |
-        set -euo pipefail
-        curl 'https://jules.googleapis.com/v1alpha/sessions' \
+        set -uo pipefail
+        # MEASURED 2026-10-29: curl fara verificarea codului HTTP face runul
+        # VERDE chiar cand API-ul REFUZA sesiunea. Doua run-uri au raspuns
+        # HTTP 400 "Precondition check failed" (FAILED_PRECONDITION) si au
+        # fost raportate ca success - deci lista de runuri arata ca Jules a
+        # primit taskul, cand de fapt nu l-a primit. Un zero fals e defect,
+        # nu succes.
+        #
+        # Codul HTTP se citeste explicit, cu -w, in loc de --fail-with-body:
+        # asa corpul raspunsului poate fi aratat in log, si o eroare de
+        # conexiune (cod gol) nu se confunda cu un refuz al serverului.
+        http_code=$(curl --silent --show-error \
+          'https://jules.googleapis.com/v1alpha/sessions' \
           -X POST \
           -H "Content-Type: application/json" \
           -H "X-Goog-Api-Key: $JULES_API_KEY" \
-          -d @jules_payload.json
+          -d @jules_payload.json \
+          -o jules_response.json \
+          -w '%{http_code}' || true)
+        if [ -z "$http_code" ]; then
+          echo "::error::Nu am primit niciun cod HTTP de la API-ul Jules. Raspunsul:"
+          cat jules_response.json 2>/dev/null || echo "(fara corp)"
+          exit 1
+        fi
+        if [ "$http_code" -lt 200 ] || [ "$http_code" -ge 300 ]; then
+          echo "::error::Jules a refuzat sesiunea (HTTP $http_code). Raspunsul API-ului:"
+          cat jules_response.json 2>/dev/null || echo "(fara corp)"
+          exit 1
+        fi
+        session_name=$(jq -r '.name // empty' jules_response.json 2>/dev/null || true)
+        if [ -z "$session_name" ]; then
+          echo "::error::Raspuns HTTP $http_code, dar fara nume de sesiune. Raspunsul:"
+          cat jules_response.json
+          exit 1
+        fi
+        echo "HTTP $http_code - sesiune Jules creata: $session_name"
