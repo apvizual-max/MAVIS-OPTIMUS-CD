@@ -21,3 +21,7 @@ desktop.ini
 # tool output (including credential echoes), so they are kept on disk and
 # out of the published history.
 transcripts/
+
+# DriveFS sync artifacts: the same file copied with a '(2)' / '(3)' suffix.
+# They are superseded versions of README.md and must not be versioned.
+README (*).md
