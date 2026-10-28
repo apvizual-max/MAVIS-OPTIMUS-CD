@@ -91,9 +91,10 @@ jobs:
             @jules - you were activated by a push to the default branch.
             The pushed diff and the recent commit log are already in your context.
 
-            1. Read JULES-CONTEXT.md, and AGENTS.md if it exists, BEFORE
-               anything else. They carry the project rules, the invariants and
-               the mandatory report format.
+            1. Read AGENTS.md and JULES-CONTEXT.md if they exist in this
+               repository, BEFORE anything else. They carry the project rules,
+               the invariants and the mandatory report format. If neither
+               exists, follow the rules in this prompt.
             2. Review the pushed change: what it actually changes, whether it
                breaks an invariant, whether the verification commands still
                pass, and whether it leaves the repository in a state a human
@@ -125,7 +126,10 @@ jobs:
             @jules - new task. The issue body carries the full context; read
             it entirely, do not skip it.
 
-            Read JULES-CONTEXT.md, and AGENTS.md if it exists, first.
+            Read AGENTS.md and JULES-CONTEXT.md if they exist in this repository,
+            first. They carry the project rules, the invariants and the
+            mandatory report format. If neither exists, follow the rules in
+            this prompt and the standard agent contract.
 
             Issue title: ${{ github.event.issue.title }}
             Issue body:
@@ -144,7 +148,10 @@ jobs:
           prompt: |
             @jules - new task, requested in a comment.
 
-            Read JULES-CONTEXT.md, and AGENTS.md if it exists, first.
+            Read AGENTS.md and JULES-CONTEXT.md if they exist in this repository,
+            first. They carry the project rules, the invariants and the
+            mandatory report format. If neither exists, follow the rules in
+            this prompt and the standard agent contract.
 
             Comment that requested the work:
             ${{ github.event.comment.body }}
@@ -165,7 +172,10 @@ jobs:
           prompt: |
             @jules - manual task.
 
-            Read JULES-CONTEXT.md, and AGENTS.md if it exists, first.
+            Read AGENTS.md and JULES-CONTEXT.md if they exist in this repository,
+            first. They carry the project rules, the invariants and the
+            mandatory report format. If neither exists, follow the rules in
+            this prompt and the standard agent contract.
 
             Task:
             ${{ inputs.sarcina }}
