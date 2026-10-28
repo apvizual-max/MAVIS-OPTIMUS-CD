@@ -179,14 +179,17 @@ function Main {
     }
 
     # --- Create the issue -------------------------------------------------
-    $titleFile = New-JulesTempFile -Suffix '.title.md'
+    # MEASURED 2026-10-28: the installed gh (2.97) has NO --title-file flag.
+    # The real flags are --title <string> and --body-file <file>. The dispatch
+    # step called `gh issue create --title-file`, gh refused with "unknown
+    # flag", and the whole daily loop exited 1 - a broken automation whose only
+    # symptom was one line in a log. Fixed by passing the title as a string.
     $bodyFile = New-JulesTempFile -Suffix '.body.md'
     try {
         $enc = New-Object System.Text.UTF8Encoding($false)
-        [System.IO.File]::WriteAllText($titleFile, $title, $enc)
         [System.IO.File]::WriteAllText($bodyFile, $body, $enc)
         $res = Invoke-Gh -GhArgs @('issue', 'create', '-R', ('apvizual-max/' + $Repo),
-                                   '--title-file', $titleFile, '--body-file', $bodyFile,
+                                   '--title', $title, '--body-file', $bodyFile,
                                    '--label', 'jules')
         if (-not $res.Ok) {
             Write-JulesLog -Message ('issue create failed: ' + $res.Err) -Level 'ERROR'
@@ -209,7 +212,6 @@ function Main {
         Write-JulesOut ('USED=' + $ledger.tasksDispatched)
         return 0
     } finally {
-        if (Test-Path -LiteralPath $titleFile) { Remove-Item -LiteralPath $titleFile -Force -ErrorAction SilentlyContinue }
         if (Test-Path -LiteralPath $bodyFile) { Remove-Item -LiteralPath $bodyFile -Force -ErrorAction SilentlyContinue }
     }
 }

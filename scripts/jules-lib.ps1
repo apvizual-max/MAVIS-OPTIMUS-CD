@@ -92,7 +92,26 @@ function Write-JulesLog {
     # that carries the exit code, and never mix with machine-readable output.
     [Console]::Error.WriteLine($line)
     if ($script:JulesLogFile) {
-        Add-Content -LiteralPath $script:JulesLogFile -Value $line -Encoding ASCII
+        # MEASURED 2026-10-28: the journal lives on the Google Drive mirror,
+        # and DriveFS can hold the file open while it syncs. Add-Content then
+        # throws "used by another process", and with ErrorActionPreference=Stop
+        # in the caller that TERMINATED the run: the daily loop exited 1 for a
+        # reason that had nothing to do with the work it was doing. A journal
+        # write must never be able to kill the run it describes. It retries,
+        # then it reports the loss on stderr and lets the run continue.
+        $written = $false
+        for ($attempt = 1; $attempt -le 5 -and -not $written; $attempt++) {
+            try {
+                Add-Content -LiteralPath $script:JulesLogFile -Value $line -Encoding ASCII -ErrorAction Stop
+                $written = $true
+            } catch {
+                # DriveFS can hold the file for a few seconds while it syncs.
+                Start-Sleep -Milliseconds (250 * [math]::Pow(2, $attempt - 1))
+            }
+        }
+        if (-not $written) {
+            [Console]::Error.WriteLine(('LOG WRITE FAILED after 3 attempts: ' + $script:JulesLogFile))
+        }
     }
 }
 

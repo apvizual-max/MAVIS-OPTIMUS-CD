@@ -1,0 +1,100 @@
+2026-10-28 12:03:42 [STEP] log opened: C:\Users\apviz\Documents\Antigravity_Folder\Antigravity_Projects\Optimus_CD (by Jules)\logs\jules-dispatch-2026-10-28.log
+2026-10-28 12:03:42 [STEP] target repo=MAVIS-CLOUD axis=performance branch=main
+2026-10-28 12:03:44 [STEP] quota used today: 0/15 dispatch cap, 100 total available
+2026-10-28 12:03:45 [STEP] target selected: mavis-tools/report-build.js (41838 bytes)
+2026-10-28 12:03:48 [ERROR] issue create failed: gh.exe : unknown flag: --title-file
+At C:\Users\apviz\Documents\Antigravity_Folder\Antigravity_Projects\Optimus_CD (by Jules)\scripts\jules-lib.ps1:187 
+char:16
++         $out = & $Program @Arguments 2> $errFile
++                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (unknown flag: --title-file:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+Usage:  gh issue create [flags]
+
+Flags:
+  -a, --assignee login       Assign people by their login. Use "@me" to self-assign.
+      --blocked-by numbers   Mark the new issue as blocked by these issue numbers or URLs
+      --blocking numbers     Mark the new issue as blocking these issue numbers or URLs
+  -b, --body string          Supply a body. Will prompt for one otherwise.
+  -F, --body-file file       Read body text from file (use "-" to read from standard input)
+  -e, --editor               Skip prompts and open the text editor to write the title and body in. The first line is 
+the title and the remaining text is the body.
+  -l, --label name           Add labels by name
+  -m, --milestone name       Add the issue to a milestone by name
+      --parent number        Add the new issue as a sub-issue of the specified parent number or URL
+  -p, --project title        Add the issue to projects by title
+      --recover string       Recover input from a failed run of create
+  -T, --template name        Template name to use as starting body text
+  -t, --title string         Supply a title. Will prompt for one otherwise.
+      --type name            Set the issue type by name
+  -w, --web                  Open the browser to create an issue
+  
+
+2026-10-28 12:06:53 [STEP] log opened: E:\Google\GDrive\GDrive-Second_Brain_PKMS\02_Areas\02-2-AI-SOT\CASA\OPTIMUS - Prime\Optimus_CD (by Jules)\logs\jules-dispatch-2026-10-28.log
+2026-10-28 12:06:53 [STEP] target repo=MAVIS-CLOUD axis=performance branch=main
+2026-10-28 12:06:55 [STEP] quota used today: 0/15 dispatch cap, 100 total available
+2026-10-28 12:06:55 [STEP] target selected: mavis-tools/report-build.js (41838 bytes)
+2026-10-28 12:06:57 [STEP] issue created: #165 https://github.com/apvizual-max/MAVIS-CLOUD/issues/165
+2026-10-28 12:06:57 [STEP] quota ledger updated: E:\Google\GDrive\GDrive-Second_Brain_PKMS\02_Areas\02-2-AI-SOT\CASA\OPTIMUS - Prime\Optimus_CD (by Jules)\state\quota-2026-10-28.json used=1
+2026-10-28 12:07:00 [STEP] log opened: E:\Google\GDrive\GDrive-Second_Brain_PKMS\02_Areas\02-2-AI-SOT\CASA\OPTIMUS - Prime\Optimus_CD (by Jules)\logs\jules-dispatch-2026-10-28.log
+2026-10-28 12:07:00 [STEP] target repo=MAVIS-CLOUD axis=design branch=main
+2026-10-28 12:07:01 [STEP] quota used today: 1/15 dispatch cap, 100 total available
+2026-10-28 12:07:02 [STEP] target selected: ALEX-KIT/SITE-VECHI/AP-ID - Systems - Site - HTML.md (351399 bytes)
+2026-10-28 12:07:04 [STEP] issue created: #166 https://github.com/apvizual-max/MAVIS-CLOUD/issues/166
+2026-10-28 12:07:04 [STEP] quota ledger updated: E:\Google\GDrive\GDrive-Second_Brain_PKMS\02_Areas\02-2-AI-SOT\CASA\OPTIMUS - Prime\Optimus_CD (by Jules)\state\quota-2026-10-28.json used=2
+2026-10-28 12:14:04 [STEP] log opened: C:\Users\apviz\Documents\Antigravity_Folder\Antigravity_Projects\Optimus_CD (by Jules)\logs\jules-dispatch-2026-10-28.log
+2026-10-28 12:14:05 [STEP] target repo=MAVIS-CLOUD axis=security branch=main
+2026-10-28 12:14:07 [STEP] quota used today: 2/15 dispatch cap, 100 total available
+2026-10-28 12:14:08 [STEP] target selected: mavis-tools/google-auth.js (10477 bytes)
+2026-10-28 12:14:09 [STEP] issue created: #168 https://github.com/apvizual-max/MAVIS-CLOUD/issues/168
+2026-10-28 12:14:09 [STEP] quota ledger updated: C:\Users\apviz\Documents\Antigravity_Folder\Antigravity_Projects\Optimus_CD (by Jules)\state\quota-2026-10-28.json used=3
+2026-10-28 12:14:12 [STEP] log opened: C:\Users\apviz\Documents\Antigravity_Folder\Antigravity_Projects\Optimus_CD (by Jules)\logs\jules-dispatch-2026-10-28.log
+2026-10-28 12:14:12 [STEP] target repo=MAVIS-OPTIMUS-CI axis=performance branch=main
+2026-10-28 12:14:13 [ERROR] label jules MISSING in MAVIS-OPTIMUS-CI - run jules-install.ps1
+2026-10-28 12:14:17 [STEP] log opened: C:\Users\apviz\Documents\Antigravity_Folder\Antigravity_Projects\Optimus_CD (by Jules)\logs\jules-dispatch-2026-10-28.log
+2026-10-28 12:14:17 [STEP] target repo=MAVIS-OPTIMUS-CI axis=design branch=main
+2026-10-28 12:14:18 [ERROR] label jules MISSING in MAVIS-OPTIMUS-CI - run jules-install.ps1
+2026-10-28 12:14:22 [STEP] log opened: C:\Users\apviz\Documents\Antigravity_Folder\Antigravity_Projects\Optimus_CD (by Jules)\logs\jules-dispatch-2026-10-28.log
+2026-10-28 12:14:22 [STEP] target repo=MAVIS-OPTIMUS-CI axis=security branch=main
+2026-10-28 12:14:22 [ERROR] label jules MISSING in MAVIS-OPTIMUS-CI - run jules-install.ps1
+2026-10-28 12:14:26 [STEP] log opened: C:\Users\apviz\Documents\Antigravity_Folder\Antigravity_Projects\Optimus_CD (by Jules)\logs\jules-dispatch-2026-10-28.log
+2026-10-28 12:14:26 [STEP] target repo=pkms-vault-automation axis=performance branch=master
+2026-10-28 12:14:27 [ERROR] label jules MISSING in pkms-vault-automation - run jules-install.ps1
+2026-10-28 12:14:31 [STEP] log opened: C:\Users\apviz\Documents\Antigravity_Folder\Antigravity_Projects\Optimus_CD (by Jules)\logs\jules-dispatch-2026-10-28.log
+2026-10-28 12:14:32 [STEP] target repo=pkms-vault-automation axis=design branch=master
+2026-10-28 12:14:32 [ERROR] label jules MISSING in pkms-vault-automation - run jules-install.ps1
+2026-10-28 12:14:36 [STEP] log opened: C:\Users\apviz\Documents\Antigravity_Folder\Antigravity_Projects\Optimus_CD (by Jules)\logs\jules-dispatch-2026-10-28.log
+2026-10-28 12:14:36 [STEP] target repo=pkms-vault-automation axis=security branch=master
+2026-10-28 12:14:37 [ERROR] label jules MISSING in pkms-vault-automation - run jules-install.ps1
+2026-10-28 12:14:41 [STEP] log opened: C:\Users\apviz\Documents\Antigravity_Folder\Antigravity_Projects\Optimus_CD (by Jules)\logs\jules-dispatch-2026-10-28.log
+2026-10-28 12:14:41 [STEP] target repo=Optimus-Mavis-Skills axis=performance branch=main
+2026-10-28 12:14:42 [ERROR] label jules MISSING in Optimus-Mavis-Skills - run jules-install.ps1
+2026-10-28 12:14:45 [STEP] log opened: C:\Users\apviz\Documents\Antigravity_Folder\Antigravity_Projects\Optimus_CD (by Jules)\logs\jules-dispatch-2026-10-28.log
+2026-10-28 12:14:45 [STEP] target repo=Optimus-Mavis-Skills axis=design branch=main
+2026-10-28 12:14:46 [ERROR] label jules MISSING in Optimus-Mavis-Skills - run jules-install.ps1
+2026-10-28 12:14:50 [STEP] log opened: C:\Users\apviz\Documents\Antigravity_Folder\Antigravity_Projects\Optimus_CD (by Jules)\logs\jules-dispatch-2026-10-28.log
+2026-10-28 12:14:50 [STEP] target repo=Optimus-Mavis-Skills axis=security branch=main
+2026-10-28 12:14:51 [ERROR] label jules MISSING in Optimus-Mavis-Skills - run jules-install.ps1
+2026-10-28 12:14:53 [STEP] log opened: C:\Users\apviz\Documents\Antigravity_Folder\Antigravity_Projects\Optimus_CD (by Jules)\logs\jules-dispatch-2026-10-28.log
+2026-10-28 12:14:53 [STEP] target repo=OPTIMUS-Backbone axis=performance branch=main
+2026-10-28 12:14:54 [ERROR] label jules MISSING in OPTIMUS-Backbone - run jules-install.ps1
+2026-10-28 12:14:56 [STEP] log opened: C:\Users\apviz\Documents\Antigravity_Folder\Antigravity_Projects\Optimus_CD (by Jules)\logs\jules-dispatch-2026-10-28.log
+2026-10-28 12:14:57 [STEP] target repo=OPTIMUS-Backbone axis=design branch=main
+2026-10-28 12:14:57 [ERROR] label jules MISSING in OPTIMUS-Backbone - run jules-install.ps1
+2026-10-28 12:15:00 [STEP] log opened: C:\Users\apviz\Documents\Antigravity_Folder\Antigravity_Projects\Optimus_CD (by Jules)\logs\jules-dispatch-2026-10-28.log
+2026-10-28 12:15:00 [STEP] target repo=OPTIMUS-Backbone axis=security branch=main
+2026-10-28 12:15:01 [ERROR] label jules MISSING in OPTIMUS-Backbone - run jules-install.ps1
+2026-10-28 12:15:03 [STEP] log opened: C:\Users\apviz\Documents\Antigravity_Folder\Antigravity_Projects\Optimus_CD (by Jules)\logs\jules-dispatch-2026-10-28.log
+2026-10-28 12:15:03 [STEP] target repo=MAVIS-CLOUD axis=performance branch=main
+2026-10-28 12:15:05 [STEP] quota used today: 3/15 dispatch cap, 100 total available
+2026-10-28 12:15:06 [STEP] target selected: mavis-tools/report-build.js (41838 bytes)
+2026-10-28 12:15:07 [STEP] issue created: #169 https://github.com/apvizual-max/MAVIS-CLOUD/issues/169
+2026-10-28 12:15:07 [STEP] quota ledger updated: C:\Users\apviz\Documents\Antigravity_Folder\Antigravity_Projects\Optimus_CD (by Jules)\state\quota-2026-10-28.json used=4
+2026-10-28 12:15:10 [STEP] log opened: C:\Users\apviz\Documents\Antigravity_Folder\Antigravity_Projects\Optimus_CD (by Jules)\logs\jules-dispatch-2026-10-28.log
+2026-10-28 12:15:10 [STEP] target repo=MAVIS-CLOUD axis=design branch=main
+2026-10-28 12:15:12 [STEP] quota used today: 4/15 dispatch cap, 100 total available
+2026-10-28 12:15:13 [STEP] target selected: ALEX-KIT/TEMPLATES-POPY/GEMINI - Automating Job Application Process - RAW Data.md (169238 bytes)
+2026-10-28 12:15:14 [STEP] issue created: #170 https://github.com/apvizual-max/MAVIS-CLOUD/issues/170
+2026-10-28 12:15:14 [STEP] quota ledger updated: C:\Users\apviz\Documents\Antigravity_Folder\Antigravity_Projects\Optimus_CD (by Jules)\state\quota-2026-10-28.json used=5

@@ -1,0 +1,17 @@
+{
+    "repo":  "MAVIS-CLOUD",
+    "pr":  167,
+    "title":  "🎨 Palette: Standardize ARIA tablist structure in AP-ID - Systems - Site - HTML.md",
+    "author":  "app/google-labs-jules",
+    "branch":  "design/accessible-tab-structure-5592013478389058727",
+    "created":  "2026-10-28T10:11:08Z",
+    "url":  "https://github.com/apvizual-max/MAVIS-CLOUD/pull/167",
+    "files":  1,
+    "additions":  15,
+    "deletions":  10,
+    "verdict":  "ADAPT",
+    "verify":  "PASS",
+    "reasons":  [
+                    "no local adaptation report yet (not yet adapted)"
+                ]
+}

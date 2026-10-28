@@ -8,9 +8,14 @@
     jules-daily.ps1 face munca. Acest wrapper adauga ce lipseste la o rulare
     nesupravegheata:
 
-    1. LOG DATAT - tot ce iese ajunge in logs\jules-daily-YYYY-MM-DD.log, cu
+    1. LOG DATAT - tot ce iese ajunge in logs\jules-daily-run-YYYY-MM-DD.log, cu
        timestamp. Fara log, o rulare reusita si una care a picat silentios
        arata la fel.
+       MEASURED 2026-10-28: wrapper-ul si jules-daily.ps1 scriau in ACELASI
+       fisier (jules-daily-YYYY-MM-DD.log). Cand ambele scriau simultan,
+       Add-Content arunca "used by another process" si toata urma a runului
+       se pierdea - chiar detaliile care ar fi explicat pica. Wrapperul are
+       acum fisierul lui, iar o scriere esuata e numarata, nu ucide runul.
     2. HALT AND REPORT - daca codul de iesire este nenul, runnerul se opreste
        si scrie explicit ce a gasit. NU repara. NU sterge. NU face merge.
     3. INTERZIS ABSOLUT - reset --hard, checkout forcat, clean, force push,
@@ -45,12 +50,27 @@ if (-not (Test-Path -LiteralPath $LOGS)) {
 }
 
 $azi    = Get-Date -Format 'yyyy-MM-dd'
-$logFis = Join-Path $LOGS ("jules-daily-{0}.log" -f $azi)
-$stamp  = Get-Date -Format 'HH:mm:ss'
+$logFis = Join-Path $LOGS ("jules-daily-run-{0}.log" -f $azi)
 
+$script:LogWriteFailures = 0
 function Scrie([string]$t, [string]$nivel = 'INFO') {
-    $linie = ('[{0}] [{1}] {2}' -f $stamp, $nivel, $t)
-    Add-Content -Path $logFis -Value $linie -Encoding UTF8
+    $linie = ('[{0}] [{1}] {2}' -f (Get-Date -Format 'HH:mm:ss'), $nivel, $t)
+    # MEASURED 2026-10-28: o scriere esuata NU poate ucide runul si NU poate
+    # pierde urma. Ea se numara si se raporteaza la final.
+    try {
+        $written = $false
+        for ($attempt = 1; $attempt -le 5 -and -not $written; $attempt++) {
+            try {
+                Add-Content -LiteralPath $logFis -Value $linie -Encoding UTF8 -ErrorAction Stop
+                $written = $true
+            } catch {
+                Start-Sleep -Milliseconds (250 * [math]::Pow(2, $attempt - 1))
+            }
+        }
+        if (-not $written) { $script:LogWriteFailures++ }
+    } catch {
+        $script:LogWriteFailures++
+    }
     Write-Output $linie
 }
 
@@ -92,7 +112,17 @@ if ($code -ne 0) {
     Scrie ("Cod de iesire nenul ({0}). Bucla s-a oprit cu problema." -f $code) 'HALT'
     Scrie ('Detalii in fisierul: {0}' -f $logFis) 'HALT'
     Scrie 'Actiune ceruta: interventa umana. Nu se repara automat.' 'HALT'
+    if ($script:LogWriteFailures -gt 0) {
+        Write-Output ('[HALT] Scrieri in jurnal esuate: ' + $script:LogWriteFailures)
+    }
     exit $code
+}
+
+if ($script:LogWriteFailures -gt 0) {
+    Scrie '' 'HALT'
+    Scrie ('Scrieri in jurnal esuate: ' + $script:LogWriteFailures + ' - rampa NU a fost complet supervizata.') 'HALT'
+    Scrie ('Log: {0}' -f $logFis) 'HALT'
+    exit 1
 }
 
 Scrie 'OK - bucla Jules s-a incheiat.'
