@@ -49,10 +49,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v4
-
       # GARD 1 - the secret must exist, otherwise the workflow burns quota
-      # without sending anything to Jules.
+      # without sending anything to Jules. The action does its own checkout.
       - name: Guard - secret present
         if: github.event_name != 'schedule'
         env:
@@ -83,7 +81,7 @@ jobs:
       # PAS 1 - PUSH: the continuous participation in our process.
       - name: Review on push
         if: github.event_name == 'push'
-        uses: google-labs-code/jules-invoke@v1
+        uses: google-labs-code/jules-action@v1.0.0
         with:
           jules_api_key: ${{ secrets.JULES_API_KEY }}
           starting_branch: ${{ github.event.repository.default_branch }}
@@ -120,7 +118,7 @@ jobs:
       # PAS 2 - issue labelled 'jules': a new task with its full context.
       - name: Task from the jules label
         if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'jules')
-        uses: google-labs-code/jules-invoke@v1
+        uses: google-labs-code/jules-action@v1.0.0
         with:
           jules_api_key: ${{ secrets.JULES_API_KEY }}
           prompt: |
@@ -140,7 +138,7 @@ jobs:
       # PAS 3 - a comment with @jules: a new task, in the discussion context.
       - name: Task from an @jules comment
         if: github.event_name == 'issue_comment' && steps.mention.outputs.hit == 'true'
-        uses: google-labs-code/jules-invoke@v1
+        uses: google-labs-code/jules-action@v1.0.0
         with:
           jules_api_key: ${{ secrets.JULES_API_KEY }}
           prompt: |
@@ -161,7 +159,7 @@ jobs:
       # PAS 4 - manual invocation, with an instruction chosen by the caller.
       - name: Manual task
         if: github.event_name == 'workflow_dispatch'
-        uses: google-labs-code/jules-invoke@v1
+        uses: google-labs-code/jules-action@v1.0.0
         with:
           jules_api_key: ${{ secrets.JULES_API_KEY }}
           prompt: |
@@ -175,7 +173,7 @@ jobs:
       # PAS 5 - weekly sweep: audit, not implementation.
       - name: Weekly audit
         if: github.event_name == 'schedule'
-        uses: google-labs-code/jules-invoke@v1
+        uses: google-labs-code/jules-action@v1.0.0
         with:
           jules_api_key: ${{ secrets.JULES_API_KEY }}
           prompt: |
