@@ -49,11 +49,11 @@
       "branch": "main",
       "private": false,
       "triage": true,
-      "dispatch": false,
+      "dispatch": true,
       "jules": {
         "label": true,
         "workflow": true,
-        "secret": false,
+        "secret": true,
         "openPrs": 0,
         "measuredAt": "2026-10-28"
       },
@@ -62,7 +62,7 @@
         "autoDetect": true,
         "commands": []
       },
-      "notes": "CREAT 2026-10-28 (R0-1: repo public) cu jules-install.ps1 -Apply: eticheta 'jules', jules.yml, verify.yml si JULES-CONTEXT.md sunt instalate. dispatch ramane false pana cand JULES_API_KEY este pus ca secret - comanda exacta: gh secret set JULES_API_KEY -R apvizual-max/MAVIS-OPTIMUS-CD. Fara secret, calea automata nu se poate declansa, deci dispatch=true ar produce erori zilnice fara rost. triage=true merge: triajul citeste PR-uri, nu are nevoie de secret."
+      "notes": "CREAT 2026-10-28 (R0-1: repo public) cu jules-install.ps1 -Apply: eticheta 'jules', jules.yml, verify.yml si JULES-CONTEXT.md sunt instalate. JULES_API_KEY a fost pus ca secret (2026-10-28, cheie din E:\\--- System Secrets\\JULES - APIs.md) si jules.yml a fost extins la mecanismul general: declanșare la PUSH pe ramura implicită (review + testare + propunere PR) plus mențiune @jules în comentarii, cu permisiuni Actions=write. De aceea dispatch=true: calea automata se poate declanșa. triage=true: triajul citește PR-uri, nu are nevoie de secret."
     },
     {
       "name": "MAVIS-OPTIMUS-CI",

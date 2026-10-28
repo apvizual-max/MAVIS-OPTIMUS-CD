@@ -1,102 +1,189 @@
 name: Invoke Jules
 
-# Cum se declanseaza Jules - mecanisme reale, verificate:
+# MECANISM GENERAL - identical in every repo of the fleet.
 #
-#   1. eticheta 'jules' pe un issue      -> "label on, task live"   (AUTOMAT)
-#   2. mentiune @jules pe un comentariu  -> DOAR daca Jules are deja un PR deschis,
-#                                           si DOAR in Reactive Mode
-#   3. jules-action (asta e aici)        -> declanseaza din orice eveniment
-#   4. Jules CLI                         -> jules remote new / task create
+# Jules joins our process on EVERY push, not only on request:
+#   1. push to the default branch  -> review the diff, run the checks, propose
+#   2. issue labelled 'jules'      -> new task, context travels in the body
+#   3. comment containing '@jules' -> new task, in the discussion context
+#   4. workflow_dispatch           -> manual task
+#   5. weekly cron                 -> audit only, no implementation
 #
-# Doar #1 este folosit de platforma noastra. Localul scrie issue-ul cu
-# contextul complet in corp, eticheta 'jules' porneste Jules.
+# AUTHORITY (JULES-CONTEXT.md): Jules proposes, Local decides. Pull request
+# only, never a direct push to the default branch. No approval prompts:
+# work, measure, open the PR. A stop comes only from a project rule,
+# never from a missing human OK.
 #
-# REGULA COTA: 100 taskuri/zi. Programarea saptamanală este doar audit.
-# Zilnic, bucla apartine lui Mavis Local (Task Scheduler pe Windows), pentru
-# ca sa poata tine cont de buget.
+# QUOTA: Jules allows 100 tasks/day. Every push consumes one, so the push
+# trigger is limited to the default branch and runs do not overlap.
 
 on:
+  push:
+    branches: [main, master]
   issues:
     types: [opened, labeled, reopened]
+  issue_comment:
+    types: [created]
   workflow_dispatch:
     inputs:
       sarcina:
-        description: 'Instructiunea pentru Jules'
+        description: 'Instruction for Jules'
         required: true
-        default: 'Citeste AGENTS.md si JULES-CONTEXT.md, apoi raporteaza starea. Nu construieste nimic pana nu primeste o sarcina concreta.'
+        default: 'Read JULES-CONTEXT.md, then report the state of this repository. Do not build anything until you receive a concrete task.'
   schedule:
-    # Sweep saptamanal de datornita tehnica - duminica la 09:00. Nu zilnic: cota e 100/zi.
     - cron: '0 9 * * 0'
 
 permissions:
   contents: write
   pull-requests: write
   issues: write
+  checks: write
+  statuses: write
+
+concurrency:
+  group: jules-${{ github.repository }}-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   jules:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
 
-      # GARD 1 - secretul trebuie sa existe, altfel workflow-ul ar arde cote
-      # fara sa trimita nimic.
-      - name: Gard - secret prezent
-        if: github.event_name == 'issues' || github.event_name == 'workflow_dispatch'
+      # GARD 1 - the secret must exist, otherwise the workflow burns quota
+      # without sending anything to Jules.
+      - name: Guard - secret present
+        if: github.event_name != 'schedule'
         env:
           KEY: ${{ secrets.JULES_API_KEY }}
         run: |
           if [ -z "$KEY" ]; then
-            echo "::error::JULES_API_KEY lipseste. Nu se trimite nimic catre Jules."
+            echo "::error::JULES_API_KEY is missing. Nothing is sent to Jules."
             exit 1
           fi
-          echo "secret prezent"
+          echo "secret present"
 
-      # GARD 2 - doar eticheta 'jules' declanseaza agentul. Un issue oarecare
-      # nu trebuie sa consume cota.
-      - name: Gard - doar eticheta jules
-        if: github.event_name == 'issues' && !contains(github.event.issue.labels.*.name, 'jules')
+      # DETECTION - a comment activates Jules only when it really contains
+      # @jules (case-insensitive) and only when it comes from the repo owner.
+      # A stranger must never be able to spend our quota.
+      - name: Detect @jules mention
+        id: mention
+        if: github.event_name == 'issue_comment'
+        env:
+          BODY: ${{ github.event.comment.body }}
+          WHO: ${{ github.event.comment.user.login }}
         run: |
-          echo "fara eticheta 'jules' - nu se trimite nimic catre Jules"
+          if echo "$BODY" | grep -qi '@jules' && [ "$WHO" = "apvizual-max" ]; then
+            echo "hit=true" >> $GITHUB_OUTPUT
+          else
+            echo "hit=false" >> $GITHUB_OUTPUT
+          fi
 
-      # PAS 1 - eticheta 'jules' pe issue declanseaza automat.
-      # Corpul issue-ului este canalul de context: acolo Mavis Local pune
-      # regulile, invariantele si criteriile de acceptare.
-      - name: Task din eticheta 'jules'
+      # PAS 1 - PUSH: the continuous participation in our process.
+      - name: Review on push
+        if: github.event_name == 'push'
+        uses: google-labs-code/jules-invoke@v1
+        with:
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+          starting_branch: ${{ github.event.repository.default_branch }}
+          include_last_commit: true
+          include_commit_log: true
+          prompt: |
+            @jules - you were activated by a push to the default branch.
+            The pushed diff and the recent commit log are already in your context.
+
+            1. Read JULES-CONTEXT.md, and AGENTS.md if it exists, BEFORE
+               anything else. They carry the project rules, the invariants and
+               the mandatory report format.
+            2. Review the pushed change: what it actually changes, whether it
+               breaks an invariant, whether the verification commands still
+               pass, and whether it leaves the repository in a state a human
+               could trust.
+            3. Run the repository's own verification - the commands stated in
+               AGENTS.md, JULES-CONTEXT.md or README. Report the REAL output
+               and the REAL exit code. If a check fails, name it and stop
+               there. Do not hide it and do not continue past it.
+            4. Judge the change explicitly: is this the better solution, or is
+               there a simpler, more robust, safer or cheaper one? Say which
+               one, and why, with numbers.
+            5. If there is a concrete improvement, implement it and open a
+               PULL REQUEST. Never push to the default branch.
+            6. If nothing needs changing, do NOT open a PR. Write a short
+               verdict comment on the pushed commit instead:
+               "VERDICT: nothing to repair. Checks: <what you ran>".
+            7. Use the report format from JULES-CONTEXT.md.
+
+            Do not ask for approval and do not wait for a human. Work, measure,
+            open the PR. Stop only when a project rule forbids the action.
+
+      # PAS 2 - issue labelled 'jules': a new task with its full context.
+      - name: Task from the jules label
         if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'jules')
-        uses: google-labs-code/jules-action@v1.0.0
+        uses: google-labs-code/jules-invoke@v1
         with:
           jules_api_key: ${{ secrets.JULES_API_KEY }}
           prompt: |
-            Citieste AGENTS.md (daca exista) si JULES-CONTEXT.md (daca exista)
-            inainte de orice lucru. Contextul principal este insa in corpul
-            issue-ului de mai jos - citeste-l intreg, nu sari peste el.
+            @jules - new task. The issue body carries the full context; read
+            it entirely, do not skip it.
 
-            Issue: ${{ github.event.issue.title }}
+            Read JULES-CONTEXT.md, and AGENTS.md if it exists, first.
+
+            Issue title: ${{ github.event.issue.title }}
+            Issue body:
             ${{ github.event.issue.body }}
 
-            Lucreaza pe ramura ${{ github.event.repository.default_branch }},
-            deschide pull request, nu impinge direct pe main.
-            Nu inventa date. Daca o verificare pica, spune-o, nu o ascunde.
+            Work on the branch named in the issue. Open a pull request, never
+            push to the default branch. Measure before you declare. If a
+            verification fails, say which one and why.
 
-      # PAS 2 - invocare manuala, cu instructiune la alegere.
-      - name: Task manual
-        if: github.event_name == 'workflow_dispatch'
-        uses: google-labs-code/jules-action@v1.0.0
-        with:
-          jules_api_key: ${{ secrets.JULES_API_KEY }}
-          prompt: ${{ github.inputs.sarcina }}
-
-      # PAS 3 - sweep saptamanal: audit, nu implementare.
-      - name: Audit saptamanal
-        if: github.event_name == 'schedule'
-        uses: google-labs-code/jules-action@v1.0.0
+      # PAS 3 - a comment with @jules: a new task, in the discussion context.
+      - name: Task from an @jules comment
+        if: github.event_name == 'issue_comment' && steps.mention.outputs.hit == 'true'
+        uses: google-labs-code/jules-invoke@v1
         with:
           jules_api_key: ${{ secrets.JULES_API_KEY }}
           prompt: |
-            Audit saptamanal. NU construieste nimic.
-            1. Ruleaza verificarea completa a repo-ului si raporteaza ce pica.
-            2. Verifica daca exista secrete in commit-uri.
-            3. Verifica daca exista fisiere generate sau dependinte urcite in commit.
-            4. Scrie un raport in docs/ si deschide un PR cu el.
-            Daca totul e verde, scrie doar "nimic de reparat" si nu deschide PR.
+            @jules - new task, requested in a comment.
+
+            Read JULES-CONTEXT.md, and AGENTS.md if it exists, first.
+
+            Comment that requested the work:
+            ${{ github.event.comment.body }}
+
+            Issue title: ${{ github.event.issue.title }}
+            Issue body:
+            ${{ github.event.issue.body }}
+
+            Open a pull request, never push to the default branch. Measure
+            before you declare.
+
+      # PAS 4 - manual invocation, with an instruction chosen by the caller.
+      - name: Manual task
+        if: github.event_name == 'workflow_dispatch'
+        uses: google-labs-code/jules-invoke@v1
+        with:
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+          prompt: |
+            @jules - manual task.
+
+            Read JULES-CONTEXT.md, and AGENTS.md if it exists, first.
+
+            Task:
+            ${{ inputs.sarcina }}
+
+      # PAS 5 - weekly sweep: audit, not implementation.
+      - name: Weekly audit
+        if: github.event_name == 'schedule'
+        uses: google-labs-code/jules-invoke@v1
+        with:
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+          prompt: |
+            @jules - weekly audit. Do NOT build anything.
+            1. Run the repository's full verification and report what fails.
+            2. Look for secrets committed in the history.
+            3. Look for generated files, build artifacts or vendored
+               dependencies that were committed.
+            4. Write the report in docs/ and open a pull request with it.
+            If everything is green, write only "nothing to repair" and do not
+            open a pull request.
