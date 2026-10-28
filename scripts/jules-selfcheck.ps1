@@ -548,6 +548,25 @@ $backlogProbeSrc = @(
     'if ($api.Count -eq 0) { Write-JulesOut ''PROBE_BACKLOG_UNKNOWN no open PR to compare''; exit 0 }',
     '$wide = @(Get-JulesPrs -Repo $repo)',
     '$narrow = @(Get-JulesPrs -Repo $repo -Limit 50)',
+    # MEASURED 2026-10-28: the backlog MOVES while the probe measures it. The
+    # API count and the window count were taken at different moments, so a PR
+    # opened or closed in between made the probe report TRUNCATED - a red on
+    # a transient. The backlog is now counted twice, before and after the
+    # window measurement: if it changed, the target moved and the probe says
+    # UNKNOWN (it cannot conclude), never FAIL.
+    '$api2 = @()',
+    '$page2 = 1',
+    'while ($true) {',
+    '    $res2 = Invoke-Native -Program ''gh'' -Arguments @(''api'', (''repos/apvizual-max/'' + $repo + ''/pulls?state=open&per_page=100&page='' + $page2))',
+    '    if ($res2.ExitCode -ne 0) { Write-JulesOut ''PROBE_BACKLOG_UNKNOWN gh api exit''; exit 0 }',
+    '    $arr2 = @(ConvertFrom-JulesJson -Json $res2.Out)',
+    '    if ($arr2.Count -eq 0) { break }',
+    '    foreach ($p2 in $arr2) { $api2 += [string]$p2.user.login }',
+    '    if ($arr2.Count -lt 100) { break }',
+    '    $page2++',
+    '}',
+    '$api2 = @($api2 | Where-Object { $_ -match ''jules|google-labs'' })',
+    'if ($api2.Count -ne $api.Count) { Write-JulesOut (''PROBE_BACKLOG_MOVING before='' + $api.Count + '' after='' + $api2.Count); exit 0 }',
     'if ($wide.Count -ne $api.Count) { Write-JulesOut (''PROBE_BACKLOG_TRUNCATED wide='' + $wide.Count + '' api='' + $api.Count); exit 0 }',
     'if ($narrow.Count -ge $api.Count) { Write-JulesOut (''PROBE_BACKLOG_NOFALSIFY wide='' + $wide.Count + '' narrow='' + $narrow.Count + '' api='' + $api.Count); exit 0 }',
     'Write-JulesOut (''PROBE_BACKLOG_OK wide='' + $wide.Count + '' narrow='' + $narrow.Count + '' api='' + $api.Count)',
