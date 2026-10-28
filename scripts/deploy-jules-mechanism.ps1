@@ -35,7 +35,7 @@
 param(
     [string]$Owner = 'apvizual-max',
     [string[]]$Repos = @(),
-    [string[]]$Exclude = @('apvizual-max/MAVIS-CLOUD'),
+    [string[]]$Exclude = @('apvizual-max/MAVIS-CLOUD', 'apvizual-max/MAVIS-OPTIMUS-CD'),
     [string]$WorkflowSource = '',
     [string]$ActionSource = '',
     [string]$SecretsFile = 'E:\--- System Secrets\JULES - APIs.md',
@@ -147,7 +147,18 @@ function Send-JsonFile([string]$repo, [string]$path, [string]$method, [hashtable
 
 foreach ($repo in $Repos) {
     if (-not $IncludeExcluded -and ($Exclude -contains $repo)) {
-        Skip $repo 'repository' 'exclus: lucra lui Jules este in curs pe acest repo'
+        $why = 'exclus intentionat'
+        if ($repo -eq 'apvizual-max/MAVIS-CLOUD') { $why = 'lucra lui Jules este in curs pe acest repo' }
+        if ($repo -eq 'apvizual-max/MAVIS-OPTIMUS-CD') {
+            # MEASURED 2026-10-29: writing the mechanism into the repository that
+            # HOLDS the mechanism makes the installer fight the push. The
+            # contents API creates a commit on origin/main, so the next local
+            # push is rejected as a non-fast-forward - measured on
+            # 98b80d7..b2d44fe. The CD ships its own workflow and action
+            # through its own git push, which is the single source of truth.
+            $why = 'sursa unica - fisierele ajung pe remote prin push-ul propriu'
+        }
+        Skip $repo 'repository' $why
         continue
     }
 
