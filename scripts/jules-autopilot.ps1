@@ -133,10 +133,14 @@ function Get-Sessions([string]$key) {
     $uri = 'https://jules.googleapis.com/v1alpha/sessions?pageSize=100'
     try {
         $r = Invoke-RestMethod -Uri $uri -Headers @{ 'X-Goog-Api-Key' = $key } -Method Get -TimeoutSec 60
-        return @($r.sessions)
+        # MEASURED 2026-10-28: an empty list and a refused list look identical
+        # if the function only returns the sessions. With an invalid key the
+        # script said "0 blocked sessions, nothing to do" and exited 0 - a
+        # FALSE ZERO that makes a scheduled task look green while Jules is
+        # actually stuck. So the failure is carried out of the function.
+        return [pscustomobject]@{ Ok = $true; Sessions = @($r.sessions); Error = '' }
     } catch {
-        Write-Line ('  sessions: ERROARE ' + $_.Exception.Message)
-        return @()
+        return [pscustomobject]@{ Ok = $false; Sessions = @(); Error = $_.Exception.Message }
     }
 }
 
@@ -360,9 +364,18 @@ function Main() {
         Write-Line 'Token OAuth: ABSENT (credentialul jules-cli:default lipseste sau nu e parsabil).'
         Write-Line '  Consecinta: usa de aprobare de plan (:interact) e inchisa. Usa de intrebare (:sendMessage) merge oricum, cu cheia API.'
     }
-    $sessions = @(Get-Sessions $key)
+    $sessionResult = Get-Sessions $key
+    if (-not $sessionResult.Ok) {
+        # A measurement that did not answer is not a verdict. Say it and fail
+        # loudly, so the scheduled task shows a red result instead of a
+        # cheerful "nothing to do".
+        Write-Line ('SESIUNI: LISTA NU A RASPUNS - ' + $sessionResult.Error)
+        Write-Line '  Asta NU inseamna "nu e nimic de deblocat". Verifica cheia Jules API.'
+        return 3
+    }
+    $sessions = @($sessionResult.Sessions)
     if ($sessions.Count -eq 0) {
-        Write-Line 'Sesiuni: 0 (lista nu a raspuns sau nu exista). Nimic de deblocat.'
+        Write-Line 'Sesiuni: 0 in total pe cont (lista a raspuns). Nimic de deblocat.'
         return 0
     }
 
