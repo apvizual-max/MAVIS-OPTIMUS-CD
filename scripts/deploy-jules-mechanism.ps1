@@ -45,6 +45,10 @@ param(
 
 $ErrorActionPreference = 'Continue'
 $script:report = @()
+# How many commits this run actually created. Each commit is a push, each
+# push starts the "Invoke Jules" workflow, each workflow run creates one
+# Jules session. So this counter IS the number of Jules sessions spent.
+$script:commits = 0
 
 function Say([string]$t) {
     Write-Output $t
@@ -63,6 +67,20 @@ function Skip([string]$repo, [string]$what, [string]$detail) {
 function Fail([string]$repo, [string]$what, [string]$detail) {
     $script:report += ('FAIL {0,-42} {1,-18} {2}' -f $repo, $what, $detail)
     Say ('FAIL ' + $repo.PadRight(42) + ' ' + $what.PadRight(18) + ' ' + $detail)
+}
+
+# MEASURED 2026-10-28: a byte comparison, not a string comparison.
+# The GitHub contents API returns "content" as base64 WITH line breaks
+# (it wraps at 60 chars), so comparing it to the local base64 as text
+# never matches and the installer would rewrite an identical file on
+# every run. The whitespace is stripped and the bytes are compared.
+function Test-SameBytes([byte[]]$a, [byte[]]$b) {
+    if ($null -eq $a -or $null -eq $b) { return $false }
+    if ($a.Length -ne $b.Length) { return $false }
+    for ($i = 0; $i -lt $a.Length; $i++) {
+        if ($a[$i] -ne $b[$i]) { return $false }
+    }
+    return $true
 }
 
 # --- inputs -----------------------------------------------------------------
@@ -145,6 +163,88 @@ function Send-JsonFile([string]$repo, [string]$path, [string]$method, [hashtable
     }
 }
 
+# One commit, several files, through the Git Data API.
+#
+# MEASURED 2026-10-29: the contents API creates ONE COMMIT PER FILE. Two files
+# = two commits = two pushes = two workflow runs = two Jules sessions per
+# repository. The fleet deploy at 22:57 produced 18 runs in 52 seconds and 13
+# sessions, most of them for content that had not changed at all.
+#
+# The Git Data API writes blobs, a tree and a commit explicitly, so both files
+# land in ONE commit - one push, one event.
+#
+# And that commit is self-quenching: the new workflow has no push trigger, so
+# a push that CONTAINS the new workflow starts no run at all. The deploy
+# spends zero Jules sessions. That is the difference between a deploy that
+# floods and a deploy that does not.
+function Write-FilesOneCommit([string]$repo, [string]$branch, [array]$files) {
+    # $files: array of @{ Path = '...'; B64 = '...' }
+    $res = [PSCustomObject]@{ Ok = $false; Error = ''; Commit = ''; Files = 0 }
+
+    $headRaw = & gh api "repos/$repo/git/ref/heads/$branch" 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $res.Error = ('nu pot citi ref-ul ' + $branch + ': ' + (($headRaw | Out-String).Trim()))
+        return $res
+    }
+    $headSha = ''
+    try { $headSha = [string](($headRaw | ConvertFrom-Json).object.sha) } catch { $headSha = '' }
+    if (-not $headSha) {
+        $res.Error = 'ref-ul nu a returnat un sha'
+        return $res
+    }
+
+    $commitRaw = & gh api "repos/$repo/git/commits/$headSha" 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $res.Error = ('nu pot citi commitul de baza: ' + (($commitRaw | Out-String).Trim()))
+        return $res
+    }
+    $baseTree = ''
+    try { $baseTree = [string](($commitRaw | ConvertFrom-Json).tree.sha) } catch { $baseTree = '' }
+    if (-not $baseTree) {
+        $res.Error = 'commitul de baza nu a returnat un tree'
+        return $res
+    }
+
+    $treeEntries = @()
+    foreach ($f in $files) {
+        $blob = Send-JsonFile $repo 'git/blobs' 'POST' @{ content = $f.B64; encoding = 'base64' }
+        $sha = ''
+        if ($blob.Code -eq 0) { try { $sha = [string](($blob.Out | ConvertFrom-Json).sha) } catch { $sha = '' } }
+        if (-not $sha) {
+            $res.Error = ('blobul pentru ' + $f.Path + ' a esuat: ' + $blob.Out)
+            return $res
+        }
+        $treeEntries += @{ path = $f.Path; mode = '100644'; type = 'blob'; sha = $sha }
+    }
+
+    $treeRes = Send-JsonFile $repo 'git/trees' 'POST' @{ base_tree = $baseTree; tree = $treeEntries }
+    $treeSha = ''
+    if ($treeRes.Code -eq 0) { try { $treeSha = [string](($treeRes.Out | ConvertFrom-Json).sha) } catch { $treeSha = '' } }
+    if (-not $treeSha) {
+        $res.Error = ('tree-ul a esuat: ' + $treeRes.Out)
+        return $res
+    }
+
+    $commitRes = Send-JsonFile $repo 'git/commits' 'POST' @{ message = 'CD: mecanism general Jules - plafon 15 taskuri, activare la cerere'; tree = $treeSha; parents = @($headSha) }
+    $commitSha = ''
+    if ($commitRes.Code -eq 0) { try { $commitSha = [string](($commitRes.Out | ConvertFrom-Json).sha) } catch { $commitSha = '' } }
+    if (-not $commitSha) {
+        $res.Error = ('commitul a esuat: ' + $commitRes.Out)
+        return $res
+    }
+
+    $refRes = Send-JsonFile $repo ('git/refs/heads/' + $branch) 'PATCH' @{ sha = $commitSha; force = $false }
+    if ($refRes.Code -ne 0) {
+        $res.Error = ('ref-ul nu a fost actualizat: ' + $refRes.Out)
+        return $res
+    }
+
+    $res.Ok = $true
+    $res.Commit = $commitSha
+    $res.Files = $files.Count
+    return $res
+}
+
 foreach ($repo in $Repos) {
     if (-not $IncludeExcluded -and ($Exclude -contains $repo)) {
         $why = 'exclus intentionat'
@@ -192,53 +292,78 @@ foreach ($repo in $Repos) {
         }
     }
 
-    # 2) the LOCAL action .github/actions/jules/action.yaml
-    # It is written BEFORE the workflow, and the order is not cosmetic.
-    # MEASURED 2026-10-28 on hermes-local-backup: the workflow landed first
-    # (run 40783868698) and the push it triggered failed in 8 seconds with
-    # "Can't find 'action.yml', 'action.yaml' or 'Dockerfile' under
-    # .../.github/actions/jules" - the local action was not in the repository
-    # yet. The very next push (40783871184) was green, because by then the
-    # action was there. So the action goes first, and the workflow that
-    # references it goes second.
+    # 2 + 3) the LOCAL action and the workflow, in ONE commit.
+    #
+    # Two measured facts forced this shape:
+    #
+    # (a) ORDER, measured 2026-10-28 on hermes-local-backup: the workflow
+    # landed first (run 40783868698) and the push it triggered failed in 8
+    # seconds with "Can't find 'action.yml', 'action.yaml' or 'Dockerfile'
+    # under .../.github/actions/jules" - the local action was not in the
+    # repository yet. A local action is read FROM THE WORKSPACE, so it has
+    # to exist before the workflow that references it runs.
+    #
+    # (b) ONE COMMIT, measured 2026-10-29: the contents API creates one
+    # commit PER FILE. Two files = two commits = two pushes = two workflow
+    # runs = two Jules sessions per repository. The fleet deploy at 22:57
+    # produced 18 runs in 52 seconds and 13 sessions, most of them for
+    # content that had not changed. Writing both files in one commit
+    # through the Git Data API gives one push and one event - and since
+    # the new workflow has NO push trigger, that push starts no run at
+    # all. The deploy becomes self-quenching: zero Jules sessions.
+    #
+    # (c) IDEMPOTENCE: a file whose bytes are already identical is not
+    # written at all. Zero change means zero commit, zero run, zero
+    # session - and the concurrent ceiling stops being an accident.
     $actionPath = 'contents/.github/actions/jules/action.yaml'
     $actionExisting = & gh api "repos/$repo/$actionPath" 2>$null
-    $actionSha = ''
+    $actionSame = $false
+    $actionExists = $false
     if ($actionExisting) {
-        try { $actionSha = [string](($actionExisting | ConvertFrom-Json).sha) } catch { $actionSha = '' }
-    }
-    if ($actionSha) {
-        if (-not $Apply) {
-            Skip $repo 'actiune-locala' 'exista deja (dry-run: ar fi actualizat)'
-        } else {
-            $res = Send-JsonFile $repo $actionPath 'PUT' @{ message = 'CD: actiune Jules locala - promptul se citeste din fisier'; content = $actionB64; branch = $branch; sha = $actionSha }
-            if ($res.Code -eq 0) { Ok $repo 'actiune-locala' 'actualizata' } else { Fail $repo 'actiune-locala' ('eroare: ' + $res.Out) }
-        }
-    } elseif (-not $Apply) {
-        Skip $repo 'actiune-locala' 'ar fi creata (dry-run)'
-    } else {
-        $res = Send-JsonFile $repo $actionPath 'PUT' @{ message = 'CD: actiune Jules locala - promptul se citeste din fisier'; content = $actionB64; branch = $branch }
-        if ($res.Code -eq 0) { Ok $repo 'actiune-locala' 'creata' } else { Fail $repo 'actiune-locala' ('eroare: ' + $res.Out) }
+        try {
+            $actionJson = $actionExisting | ConvertFrom-Json
+            $actionExists = [bool]$actionJson.sha
+            if ($actionJson.content) {
+                $actionRemoteBytes = [Convert]::FromBase64String(([string]$actionJson.content -replace '\s', ''))
+                $actionSame = (Test-SameBytes $actionRemoteBytes $actionBytes)
+            }
+        } catch { $actionSame = $false }
     }
 
-    # 3) workflow jules.yml (create or update)
-    $existing = & gh api "repos/$repo/contents/.github/workflows/jules.yml" 2>$null
-    $sha = ''
-    if ($existing) {
-        try { $sha = [string](($existing | ConvertFrom-Json).sha) } catch { $sha = '' }
+    $workflowPath = 'contents/.github/workflows/jules.yml'
+    $workflowExisting = & gh api "repos/$repo/$workflowPath" 2>$null
+    $workflowSame = $false
+    $workflowExists = $false
+    if ($workflowExisting) {
+        try {
+            $wfJson = $workflowExisting | ConvertFrom-Json
+            $workflowExists = [bool]$wfJson.sha
+            if ($wfJson.content) {
+                $wfRemoteBytes = [Convert]::FromBase64String(([string]$wfJson.content -replace '\s', ''))
+                $workflowSame = (Test-SameBytes $wfRemoteBytes $workflowBytes)
+            }
+        } catch { $workflowSame = $false }
     }
-    if ($sha) {
-        if (-not $Apply) {
-            Skip $repo 'workflow' 'exista deja (dry-run: ar fi actualizat)'
-        } else {
-            $res = Send-JsonFile $repo 'contents/.github/workflows/jules.yml' 'PUT' @{ message = 'CD: mecanism general Jules - push + @jules'; content = $workflowB64; branch = $branch; sha = $sha }
-            if ($res.Code -eq 0) { Ok $repo 'workflow' 'actualizat' } else { Fail $repo 'workflow' ('eroare: ' + $res.Out) }
-        }
+
+    $filesToWrite = @()
+    if (-not $actionSame) { $filesToWrite += @{ Path = '.github/actions/jules/action.yaml'; B64 = $actionB64 } }
+    if (-not $workflowSame) { $filesToWrite += @{ Path = '.github/workflows/jules.yml'; B64 = $workflowB64 } }
+
+    if ($filesToWrite.Count -eq 0) {
+        Skip $repo 'mecanism' 'identic - 0 commit, 0 run, 0 sesiune Jules'
     } elseif (-not $Apply) {
-        Skip $repo 'workflow' 'ar fi creat (dry-run)'
+        $parts = @()
+        if (-not $actionSame) { $parts += $(if ($actionExists) { 'actiune(locala)' } else { 'actiune(noua)' }) }
+        if (-not $workflowSame) { $parts += $(if ($workflowExists) { 'workflow' } else { 'workflow(nou)' }) }
+        Skip $repo 'mecanism' ('ar fi scris ' + ($parts -join ' + ') + ' intr-un singur commit (dry-run)')
     } else {
-        $res = Send-JsonFile $repo 'contents/.github/workflows/jules.yml' 'PUT' @{ message = 'CD: mecanism general Jules - push + @jules'; content = $workflowB64; branch = $branch }
-        if ($res.Code -eq 0) { Ok $repo 'workflow' 'creat' } else { Fail $repo 'workflow' ('eroare: ' + $res.Out) }
+        $res = Write-FilesOneCommit -Repo $repo -Branch $branch -Files $filesToWrite
+        if ($res.Ok) {
+            Ok $repo 'mecanism' ('1 commit, ' + $res.Files + ' fisier(e)')
+            $script:commits = $script:commits + 1
+        } else {
+            Fail $repo 'mecanism' ('eroare: ' + $res.Error)
+        }
     }
 
     # 3) secret JULES_API_KEY
@@ -288,6 +413,10 @@ if ($tmpWritten -and (Test-Path -LiteralPath $tmpEnv)) {
 
 Say ''
 Say ('Raport: ' + $script:report.Count + ' randuri')
+if ($Apply) {
+    Say ('Commituri create: ' + $script:commits + ' (un commit = o push = un eveniment)')
+    Say ('Sesiuni Jules consumate de acest deploy: 0 - workflow-ul nou nu are trigger pe push, deci niciun commit nou nu porneste un run.')
+}
 $script:report | ForEach-Object { Write-Output $_ }
 if (-not $Apply) {
     Say ''

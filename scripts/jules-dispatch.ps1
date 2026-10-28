@@ -105,6 +105,26 @@ function Main {
     }
     Write-JulesLog -Message ('quota used today: ' + $used + '/' + $cap + ' dispatch cap, ' + $quota + ' total available') -Level 'STEP'
 
+    # --- Concurrency budget ------------------------------------------------
+    # MEASURED 2026-10-29 (Popy's rule): Jules holds at most 15 tasks at the
+    # same time; beyond that he starts failing and stops answering.
+    #
+    # The daily cap above counts TASKS DISPATCHED TODAY - a different thing.
+    # A day can dispatch very few tasks while many sessions opened on
+    # previous days are still open. On this account there were 17 open
+    # sessions when the rule was given: over the limit, which is exactly
+    # when Jules goes silent. Both limits have to be respected.
+    $budget = Test-JulesConcurrencyBudget -MaxOpen 15
+    if (-not $budget.Measured) {
+        Write-JulesLog -Message ('concurrency budget NOT measurable: ' + $budget.Error + ' - dispatch skipped. An unmeasured ceiling must not become an open door.') -Level 'ERROR'
+        return 6
+    }
+    if (-not $budget.Fits) {
+        Write-JulesLog -Message ('concurrency budget FULL: ' + $budget.Open + '/' + $budget.Max + ' Jules tasks already open - dispatch skipped.') -Level 'WARN'
+        return 6
+    }
+    Write-JulesLog -Message ('concurrency budget: ' + $budget.Open + '/' + $budget.Max + ' open Jules tasks - room for one more') -Level 'STEP'
+
     # --- Target selection, measured on the repo tree ----------------------
     $history = @(Get-TargetHistory -Days 30)
     $exclude = @()

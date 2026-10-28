@@ -5,7 +5,8 @@
     Enforces Zero-Inbox, Single-Branch Invariant, Quota Preservation, and Autonomous Task Resolution.
 
 .DESCRIPTION
-    Pass 1: Jules Task Discovery, Quota & Capacity Audit (out of 100), and Autonomous Feedback Unblocking (:interact API)
+    Pass 1: Jules Task Discovery, OPEN-capacity Audit (15 concurrent slots),
+    and delegation of the autonomous answers to jules-autopilot.ps1
     Pass 2: Audits, squash-merges, prunes branches, and cleans all open GitHub PRs & notifications
     Pass 3: Purges lingering "Ready for review" completed tasks from Jules cloud dashboard
     Pass 4: Single-Branch Invariant sweep (orphan ephemeral branches); the full forensic execution is logged to SOVEREIGN_MAINTENANCE_LOG.md
@@ -155,21 +156,36 @@ if ($julesToken) {
 
         $tasks = $taskRes.tasks
         $totalTaskCount = if ($tasks) { $tasks.Count } else { 0 }
-        $maxQuota = 100
-        $headroom = [Math]::Max(0, $maxQuota - $totalTaskCount)
-        
+
+        # MEASURED 2026-10-29 (Popy's rule): Jules holds at most 15 tasks at
+        # the same time. Beyond that he starts failing and stops answering.
+        #
+        # The old model here was WRONG in a way that caused the flood: it
+        # compared the number of ALL tasks (including every COMPLETED one,
+        # which never goes away) against a quota of 100. So the headroom
+        # always looked huge and the daemon kept dispatching - while the
+        # real limit was 15 OPEN tasks. On this account there were 17 open
+        # sessions before the correction: over the limit, which is exactly
+        # when Jules goes silent.
+        #
+        # The capacity that matters is the OPEN one.
+        $maxOpenTasks = 15
         $inProgress = @($tasks | Where-Object { $_.swebotTaskStatus -eq "SWEBOT_TASK_STATUS_IN_PROGRESS" -or $_.taskStatus -eq "IN_PROGRESS" }).Count
+        $awaitingFeedbackCount = @($tasks | Where-Object { $_.swebotTaskStatus -eq "SWEBOT_TASK_STATUS_AWAITING_USER_FEEDBACK" -or $_.taskStatus -eq "AWAITING_USER_FEEDBACK" }).Count
+        $openTaskCount = $inProgress + $awaitingFeedbackCount
+        $headroom = [Math]::Max(0, $maxOpenTasks - $openTaskCount)
+
         $awaitingReview = @($tasks | Where-Object { $_.isAwaitingReview -eq $true }).Count
         $completedCount = @($tasks | Where-Object { $_.swebotTaskStatus -eq "SWEBOT_TASK_STATUS_COMPLETED" -or $_.taskStatus -eq "COMPLETED" }).Count
 
-        Log-Message "Jules Cloud Task Capacity Audit: $totalTaskCount/$maxQuota tasks occupied ($headroom slots available)."
-        Log-Message "Task Distribution: In-Progress: $inProgress | Awaiting Review: $awaitingReview | Completed: $completedCount"
+        Log-Message "Jules Cloud Capacity Audit: $openTaskCount OPEN tasks (In-Progress: $inProgress | Awaiting Feedback: $awaitingFeedbackCount) of $maxOpenTasks concurrent slots. Headroom: $headroom."
+        Log-Message "Historical totals: $totalTaskCount tasks ever created, $completedCount completed, $awaitingReview awaiting review."
 
-        if ($totalTaskCount -ge 95) {
-            Log-Message "RATE LIMIT / QUOTA CEILING REACHED ($totalTaskCount/$maxQuota). Entering Quota Preservation Mode."
+        if ($openTaskCount -ge $maxOpenTasks) {
+            Log-Message "CONCURRENT CEILING REACHED ($openTaskCount/$maxOpenTasks open tasks). Entering Quota Preservation Mode."
             Log-Message "Strategy: No new tasks will be dispatched. Focusing exclusively on driving in-progress tasks to completion, approving feedback, merging PRs, and purging completed tasks."
         } else {
-            Log-Message "Cloud capacity is healthy ($headroom task slots available for dispatch)."
+            Log-Message "Capacity is healthy ($headroom slots available for dispatch)."
         }
 
         $awaitingFeedback = $tasks | Where-Object { 
@@ -177,44 +193,36 @@ if ($julesToken) {
         }
 
         if ($awaitingFeedback.Count -gt 0) {
-            Log-Message "Found $($awaitingFeedback.Count) tasks awaiting user feedback. Processing autonomous answers..."
-            foreach ($task in $awaitingFeedback) {
-                $detailUrl = "https://aida.googleapis.com/v1/swebot/tasks/$($task.id)"
-                $detail = Invoke-RestMethod -Uri $detailUrl -Method Get -Headers $julesHeaders
-                $t = $detail.task
-                
-# Find step requiring response
-                $targetStep = $null
-                for ($i = $t.activitySteps.Count - 1; $i -ge 0; $i--) {
-                    $step = $t.activitySteps[$i]
-                    if ($step.agentActivity.agentMessaged.requiresUserResponse -eq $true) {
-                        $targetStep = $step
-                        break
-                    }
+            # MEASURED 2026-10-29: the answer that used to be sent from here
+            # ("Approved. Proceed with the proposed improvements...") was
+            # MEASURED NOT to release the agent. Session 3384046284391976636
+            # received four such answers and stayed blocked through all four:
+            # the real release is a NEW devBoxStarted step, and a bare
+            # approval does not produce one. The answer has to carry the
+            # SUBSTANCE of the question before the approval.
+            #
+            # So the daemon does not answer any more. It delegates to
+            # jules-autopilot.ps1 - the instrument that was MEASURED to work:
+            # substance-first answer, :interact before :sendMessage, and a
+            # guard on devBoxStarted instead of the lagging public state.
+            # One instrument answers, so the weak duplicate cannot undo the
+            # good one.
+            #
+            # The autopilot also EXCLUDES MAVIS-CLOUD by default, which is
+            # what we want: Jules works there and we do not touch it.
+            $autopilot = Join-Path $PSScriptRoot 'jules-autopilot.ps1'
+            if (Test-Path -LiteralPath $autopilot) {
+                Log-Message "Delegating autonomous answers to jules-autopilot.ps1 ($($awaitingFeedback.Count) tasks awaiting feedback). MAVIS-CLOUD is excluded there by default."
+                try {
+                    $apOut = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $autopilot -Apply 2>&1 | Out-String
+                    $apCode = $LASTEXITCODE
+                    if ($apOut) { Log-Message ("jules-autopilot.ps1: " + $apOut.Trim()) }
+                    if ($apCode -ne 0) { Log-Message "jules-autopilot.ps1 reported exit code $apCode - answers may be incomplete." }
+                } catch {
+                    Log-Message "Delegation to jules-autopilot.ps1 failed: $_"
                 }
-
-                if ($targetStep) {
-                    $question = $targetStep.agentActivity.agentMessaged.text
-                    Log-Message "Task $($task.id) question snippet: $($question.Substring(0, [Math]::Min(120, $question.Length)))..."
-                    
-# Autonomous sovereign response formulation
-                    $autoAnswer = "Approved. Proceed with the proposed improvements, ensure clean cross-platform execution, run native tests, and submit the Pull Request."
-                    $feedbackId = [Guid]::NewGuid().ToString().ToUpper()
-
-                    $body = @{
-                        "userActivity" = @{
-                            "feedbackGiven" = @{
-                                "feedback" = $autoAnswer
-                                "feedbackId" = $feedbackId
-                            }
-                            "activityStepId" = $targetStep.id
-                        }
-                    } | ConvertTo-Json -Depth 5
-
-                    $interactUrl = "https://aida.googleapis.com/v1/swebot/tasks/$($task.id):interact"
-                    Invoke-RestMethod -Uri $interactUrl -Method Post -Headers $julesHeaders -Body $body | Out-Null
-                    Log-Message "Successfully sent autonomous answer to unblock Task $($task.id)."
-                }
+            } else {
+                Log-Message "jules-autopilot.ps1 not found - no answers sent (a bare approval does not release the agent; MEASURED 2026-10-28)."
             }
         } else {
             Log-Message "Zero Jules tasks awaiting user feedback. All tasks running or resolved."

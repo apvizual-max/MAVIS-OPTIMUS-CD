@@ -667,6 +667,66 @@ function Add-QuotaTask {
     return $Ledger
 }
 
+function Get-JulesOpenSessionCount {
+    # MEASURED 2026-10-29 (Popy's rule): Jules holds at most 15 tasks at the
+    # same time. Beyond that he starts failing and stops answering.
+    #
+    # The capacity that matters is the OPEN one: IN_PROGRESS plus
+    # AWAITING_USER_FEEDBACK. Completed sessions never leave the account, so
+    # counting them is exactly how the daemon came to believe it had room for
+    # 100 more tasks while the real ceiling was 15.
+    param(
+        [string]$SecretsFile = 'E:\--- System Secrets\JULES - APIs.md'
+    )
+    $result = [PSCustomObject]@{ Ok = $false; Open = -1; Total = 0; Error = '' }
+    if (-not (Test-Path -LiteralPath $SecretsFile)) {
+        $result.Error = 'fisierul de secrete nu exista'
+        return $result
+    }
+    $key = ''
+    foreach ($line in (Get-Content -LiteralPath $SecretsFile)) {
+        $t = $line.Trim()
+        if ($t -and $t -notmatch '^#' -and $t -notmatch '^-{2,}$' -and $t -notmatch '^\w+:' -and $t.Length -ge 30) {
+            $key = $t
+            break
+        }
+    }
+    if (-not $key) {
+        $result.Error = 'cheia Jules nu a fost gasita'
+        return $result
+    }
+    try {
+        $r = Invoke-RestMethod -Uri 'https://jules.googleapis.com/v1alpha/sessions?pageSize=100' -Headers @{ 'X-Goog-Api-Key' = $key } -Method Get -TimeoutSec 45
+        $sessions = @($r.sessions)
+        $open = @($sessions | Where-Object { $_.state -eq 'IN_PROGRESS' -or $_.state -eq 'AWAITING_USER_FEEDBACK' })
+        $result.Ok = $true
+        $result.Open = $open.Count
+        $result.Total = $sessions.Count
+        return $result
+    } catch {
+        $result.Error = $_.Exception.Message
+        return $result
+    }
+}
+
+function Test-JulesConcurrencyBudget {
+    # Does a new Jules task fit in the 15-slot concurrent budget?
+    #
+    # A budget that cannot be MEASURED is not treated as "there is room".
+    # An unmeasurable ceiling must not become an open door - the rule exists
+    # because the account went over the limit and Jules went silent. The
+    # caller can tell the two cases apart through the Measured flag.
+    param(
+        [int]$MaxOpen = 15,
+        [string]$SecretsFile = 'E:\--- System Secrets\JULES - APIs.md'
+    )
+    $m = Get-JulesOpenSessionCount -SecretsFile $SecretsFile
+    if (-not $m.Ok) {
+        return [PSCustomObject]@{ Fits = $false; Measured = $false; Open = -1; Total = 0; Max = $MaxOpen; Error = $m.Error }
+    }
+    return [PSCustomObject]@{ Fits = ($m.Open -lt $MaxOpen); Measured = $true; Open = $m.Open; Total = $m.Total; Max = $MaxOpen; Error = '' }
+}
+
 function Get-UsedTargets {
     param(
         [Parameter(Mandatory = $true)][object]$Ledger,
