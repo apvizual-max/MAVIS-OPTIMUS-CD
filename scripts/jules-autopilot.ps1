@@ -178,7 +178,7 @@ function Get-LocalVerification([string]$repoName) {
     return ('gate local pe ' + $repoName + ': ' + $summary + ' (exit=' + $code + ')')
 }
 
-function Build-Answer([string]$repoName, [string]$verification) {
+function Build-Answer([string]$repoName, [string]$verification, [string]$question) {
     $lines = @()
     $lines += 'APROBAT - mergi mai departe autonom. Nu mai cere aprobare pentru acest task.'
     $lines += ''
@@ -193,6 +193,22 @@ function Build-Answer([string]$repoName, [string]$verification) {
         $lines += 'Masurarea nu a putut fi rulata pe aceasta masina pentru acest repository. Ruleaza verificarile repository-ului in sandboxul tau si raporteaza iesirea reala si codul de iesire real.'
     }
     $lines += ''
+    # MEASURED 2026-10-28: the answer has to ANSWER the question, not just
+    # say "approved". Session 3384046284391976636 was asked a concrete
+    # technical question (gh needs authentication - should it be mocked, should
+    # the check be bypassed, should it get a GH_TOKEN?) and it received four
+    # answers that only said "APROBAT - mergi mai departe". It stayed blocked
+    # through all of them. The session that DID wake up (2227387981514727588)
+    # was asked a question about a repository behaviour, and the answer
+    # addressed the substance. So the substance comes FIRST and the approval
+    # follows it - the other way round the agent has nothing to act on.
+    if ($question) {
+        $lines += '[Raspuns la intrebarea ta]'
+        $lines += ('Intrebarea ta: ' + $question)
+        $lines += ''
+        $lines += 'Raspuns: mergi cu varianta cea mai simpla si masurabila. Nu mocka un instrument si nu ocoli o verificare - daca un instrument nu este disponibil in sandbox, raporteaza UNKNOWN pentru el (nu e esec) si foloseste restul masuratorilor pentru a decide. Nu cer si nu folosi secrete: daca o informatie lipseste, o spui ca lipsa si mergi cu ce ai. Lucreza, masoara, deschide pull request sau scrie verdictul.'
+        $lines += ''
+    }
     $lines += '[Reguli care te obliga]'
     $lines += '1. Nu impinge niciodata direct pe main. Deschide pull request.'
     $lines += '2. Daca nu e nimic de reparat, NU deschide PR. Scrie pe commit: "VERDICT: nothing to repair. Checks: <ce ai rulat si iesirea reala>".'
@@ -270,11 +286,41 @@ public static class JulesCred {
         # The stored blob has two shapes across versions: nested under
         # "token" and flat at the top level. Measured 2026-10-28: the live
         # one is flat (access_token / token_type / refresh_token / expiry).
-        if ($parsed.token -and $parsed.token.access_token) { return [string]$parsed.token.access_token }
-        if ($parsed.access_token) { return [string]$parsed.access_token }
-        return ''
+        $token = ''
+        $expiry = $null
+        if ($parsed.token -and $parsed.token.access_token) {
+            $token = [string]$parsed.token.access_token
+            if ($parsed.token.expiry) { $expiry = [DateTime]::Parse([string]$parsed.token.expiry) }
+        } elseif ($parsed.access_token) {
+            $token = [string]$parsed.access_token
+            if ($parsed.expiry) { $expiry = [DateTime]::Parse([string]$parsed.expiry) }
+        }
+        if (-not $token) { return '' }
+
+        # MEASURED 2026-10-28: the token lives about 90 minutes. An expired
+        # token does NOT fail loudly on :interact - the endpoint answers HTTP
+        # 200 with an empty body and the session stays stuck. The first
+        # version of this script therefore reported "answered" while nothing
+        # had been released. So the expiry is checked HERE and the token is
+        # refreshed BEFORE it is used, not after a silent failure.
+        if ($expiry -and (Get-Date) -ge $expiry.AddMinutes(-2)) {
+            Write-Line ('  token OAuth expirat la ' + $expiry.ToString('HH:mm:ss') + ' - reimprospatez')
+            Refresh-OAuthToken
+            return Get-OAuthToken
+        }
+        return $token
     } catch {
         return ''
+    }
+}
+
+function Refresh-OAuthToken {
+    # The jules CLI knows how to refresh the credential it owns. Measured
+    # 2026-10-28: `jules.cmd remote list --repo` renews the stored token
+    # (expiry moved from 12:08 to 22:56 to 23:58 across three runs).
+    try {
+        $null = & cmd.exe /c 'jules.cmd remote list --repo 2>nul'
+    } catch {
     }
 }
 
@@ -313,12 +359,64 @@ function Send-Interact([string]$oauth, [string]$taskId, [string]$stepId, [string
     }
 }
 
+function Test-SessionReleased([string]$key, [string]$sessionName, [string]$oauth, [string]$taskId, [int]$devBoxBefore) {
+    # MEASURED 2026-10-28, three times over:
+    #   1. ":interact" answers HTTP 200 with an empty body even when the token
+    #      was expired, and the session stays blocked. A successful CALL is not
+    #      a release.
+    #   2. The public state is a LAGGING indicator. Session
+    #      3384046284391976636 stayed AWAITING_USER_FEEDBACK for about seven
+    #      minutes after the answer arrived, and then turned IN_PROGRESS on
+    #      its own - nobody sent anything else. So "still AWAITING" after one
+    #      minute does NOT mean "the answer did not land".
+    #   3. The TRUTH is in the internal task's step list: the agent wakes up by
+    #      creating a NEW devBoxStarted step. Measured on
+    #      2227387981514727588 (SENTINEL_PRIME): the answer landed at
+    #      21:21:00 and a new devBoxStarted appeared at 21:21:17 - 17 seconds
+    #      later. Measured on the same session, the public state was STILL
+    #      AWAITING_USER_FEEDBACK minutes after the agent had already woken
+    #      up. A guard that reads the public state therefore reports "not
+    #      released" for a session that is in fact working again.
+    #
+    # So the guard reads the step list and counts devBoxStarted. A new one
+    # means the agent took the answer and is working again.
+    $deadline = (Get-Date).AddSeconds(420)
+    while ((Get-Date) -lt $deadline) {
+        if ($oauth -and $taskId) {
+            try {
+                $d = Invoke-RestMethod -Uri ('https://aida.googleapis.com/v1/swebot/tasks/' + $taskId) -Headers @{ Authorization = ('Bearer ' + $oauth) } -Method Get -TimeoutSec 45
+                $dev = 0
+                foreach ($s in @($d.task.activitySteps)) {
+                    if ($s.agentActivity.devBoxStarted) { $dev++ }
+                }
+                if ($dev -gt $devBoxBefore) { return ('TREZIT(dev=' + $dev + ')') }
+            } catch {
+            }
+        }
+        try {
+            $s2 = Invoke-RestMethod -Uri ('https://jules.googleapis.com/v1alpha/' + $sessionName) -Headers @{ 'X-Goog-Api-Key' = $key } -Method Get -TimeoutSec 30
+            if ($s2.state -ne 'AWAITING_USER_FEEDBACK') { return [string]$s2.state }
+        } catch {
+        }
+        Start-Sleep -Seconds 15
+    }
+    return 'AWAITING_USER_FEEDBACK'
+}
+
 function Load-State([string]$path) {
     if (-not (Test-Path -LiteralPath $path)) { return @{} }
     try {
         $raw = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
         $map = @{}
-        foreach ($p in $raw.PSObject.Properties) { $map[$p.Name] = [int]$p.Value }
+        foreach ($p in $raw.PSObject.Properties) {
+            # A count is a number; a list of answered step ids is text. Both
+            # live in this file, so the type is decided by what is stored.
+            if ($p.Value -is [int] -or $p.Value -is [long] -or $p.Value -is [double]) {
+                $map[$p.Name] = [int]$p.Value
+            } else {
+                $map[$p.Name] = [string]$p.Value
+            }
+        }
         return $map
     } catch {
         return @{}
@@ -331,8 +429,19 @@ function Save-State([string]$path, [hashtable]$map) {
         if ($dir -and -not (Test-Path -LiteralPath $dir)) {
             New-Item -ItemType Directory -Path $dir -Force | Out-Null
         }
-        $json = ($map.GetEnumerator() | Sort-Object Name | ForEach-Object { '"{0}": {1}' -f $_.Name, $_.Value }) -join ",`n"
-        $text = if ($json) { '{' + "`n" + $json + "`n" + '}' } else { '{}' }
+        # The state holds two kinds of value: a message count (number) and the
+        # ids of the answered steps (text). Writing both as numbers would
+        # turn the step ids into 0 and make the guard forget what it
+        # answered, so the value type decides the JSON shape.
+        $parts = @()
+        foreach ($entry in ($map.GetEnumerator() | Sort-Object Name)) {
+            if ($entry.Value -is [int] -or $entry.Value -is [long]) {
+                $parts += ('"{0}": {1}' -f $entry.Name, [int]$entry.Value)
+            } else {
+                $parts += ('"{0}": "{1}"' -f $entry.Name, ([string]$entry.Value))
+            }
+        }
+        $text = if ($parts.Count -gt 0) { '{' + "`n" + ($parts -join ",`n") + "`n" + '}' } else { '{}' }
         [System.IO.File]::WriteAllText($path, $text, (New-Object System.Text.UTF8Encoding($false)))
         return $true
     } catch {
@@ -409,12 +518,61 @@ function Main() {
             Write-Line ('  ' + $name + ' -> activitati ilizibile, sarit')
             continue
         }
+
+        # The guard counts the step that is actually WAITING for an answer, not
+        # the number of messages. MEASURED 2026-10-28: counting agent messages
+        # on the public API reported "already answered (1/1)" for session
+        # 7665116565709981265, while the internal API showed the session still
+        # blocked on a PLAN APPROVAL step. The public activity list does not
+        # carry plan-approval steps at all, so a message count cannot see
+        # them - and a guard that cannot see the thing it guards lets a
+        # session stay stuck forever. The pending step id is the truth.
         $agentCount = @($activities | Where-Object { $_.agentMessaged }).Count
-        $already = 0
-        if ($state.ContainsKey($name)) { $already = [int]$state[$name] }
-        if ($agentCount -le $already) {
-            Write-Line ('  ' + $name + ' (' + $repoName + ') -> intrebare deja raspunsa (' + $agentCount + '/' + $already + '), sarit')
-            continue
+        $answeredSteps = @()
+        $stepStateKey = $name + '|step'
+        if ($state.ContainsKey($stepStateKey)) {
+            $answeredSteps = @(([string]$state[$stepStateKey]) -split ',' | Where-Object { $_ })
+        }
+
+        $pending = @(Get-PendingSteps $oauth $taskId)
+        $toAnswer = @()
+        foreach ($step in $pending) {
+            if ($answeredSteps -notcontains $step.Id) { $toAnswer += $step }
+        }
+
+        # The wake counter: how many devBoxStarted steps the task has right now.
+        # MEASURED 2026-10-28: the agent wakes up by creating a NEW one
+        # (2227387981514727588: the answer landed at 21:21:00, a new
+        # devBoxStarted appeared at 21:21:17). The public state lags by
+        # minutes - session 3384046284391976636 turned IN_PROGRESS seven
+        # minutes after the answer, on its own. So the release is judged on
+        # this counter, and the counter is read BEFORE the answer is sent.
+        $devBoxBefore = 0
+        if ($oauth -and $taskId) {
+            try {
+                $d0 = Invoke-RestMethod -Uri ('https://aida.googleapis.com/v1/swebot/tasks/' + $taskId) -Headers @{ Authorization = ('Bearer ' + $oauth) } -Method Get -TimeoutSec 45
+                foreach ($s0 in @($d0.task.activitySteps)) {
+                    if ($s0.agentActivity.devBoxStarted) { $devBoxBefore++ }
+                }
+            } catch {
+            }
+        }
+
+        if ($pending.Count -gt 0) {
+            if ($toAnswer.Count -eq 0) {
+                Write-Line ('  ' + $name + ' (' + $repoName + ') -> pasul pendent a fost deja raspuns, sarit')
+                continue
+            }
+        } else {
+            # No pending step visible (no OAuth token, or the session waits for
+            # something the internal API does not expose). Fall back to the
+            # message count, which is what we can see from the public API.
+            $already = 0
+            if ($state.ContainsKey($name)) { $already = [int]$state[$name] }
+            if ($agentCount -le $already) {
+                Write-Line ('  ' + $name + ' (' + $repoName + ') -> intrebare deja raspunsa (' + $agentCount + '/' + $already + '), sarit')
+                continue
+            }
         }
 
         $question = ''
@@ -427,7 +585,7 @@ function Main() {
         if ($question.Length -gt 220) { $question = $question.Substring(0, 220) + '...' }
 
         $verification = Get-LocalVerification $repoName
-        $answer = Build-Answer $repoName $verification
+        $answer = Build-Answer $repoName $verification $question
 
         Write-Line ('  ' + $name + ' (' + $repoName + ') intrebare: ' + $question)
         if ($verification) { Write-Line ('    ' + $verification) }
@@ -441,9 +599,6 @@ function Main() {
             continue
         }
 
-        $result = Send-Answer $key $name $answer
-        Write-Line ('    raspuns (:sendMessage): ' + $result)
-
         # The second door: a session that waits for a PLAN APPROVAL does not
         # move on a message - it needs :interact with the step that carries
         # requiresUserResponse=true. Measured 2026-10-28: session
@@ -451,17 +606,65 @@ function Main() {
         # successful :sendMessage and moved to IN_PROGRESS only after
         # :interact. So the plan-approval door is tried on every stuck
         # session, not only on the ones that look like plan approvals.
+        #
+        # MEASURED 2026-10-28, second time: the reverse is also true. Session
+        # 7665116565709981265 took :sendMessage and STAYED blocked, because it
+        # waits for a plan approval. A message alone is not enough, and the
+        # order matters: the plan-approval door is tried FIRST when a pending
+        # step exists, because it is the door that actually releases that
+        # kind of wait.
+        # MEASURED 2026-10-28, third time, with the wake signal read from the
+        # step list instead of the public state:
+        #   - :interact on the pending step WAKES the agent. Session
+        #     2227387981514727588 (SENTINEL_PRIME): the answer landed at
+        #     21:21:00 and a new devBoxStarted appeared at 21:21:17 - 17
+        #     seconds later.
+        #   - :sendMessage does NOT wake it. Measured on two sessions
+        #     (3384046284391976636 and 2227387981514727588): the message was
+        #     recorded as a userActivity step, and the devBox counter did not
+        #     move in 150 seconds of watching. It is still worth sending as a
+        #     second door, because a session that has no pending step cannot
+        #     be reached by :interact at all.
+        #   - the public state lags by minutes. Session 3384046284391976636
+        #     turned IN_PROGRESS about seven minutes after the answer, on its
+        #     own. A guard that reads the state alone calls a working session
+        #     "not released".
         $released = $false
-        if ($result -eq 'trimis') {
-            $released = $true
+        $answeredStepIds = @()
+
+        if ($toAnswer.Count -gt 0) {
+            foreach ($step in $toAnswer) {
+                $inter = Send-Interact $oauth $taskId $step.Id $answer
+                Write-Line ('    raspuns (:interact, pas ' + $step.Id.Substring(0, 8) + '): ' + $inter)
+                if ($inter -eq 'trimis') {
+                    $released = $true
+                    $answeredStepIds += $step.Id
+                }
+            }
         }
+
+        if (-not $released) {
+            # No pending step to answer: the only door left is a plain message.
+            # It does not wake the agent (measured), but it is recorded and it
+            # reaches a session that :interact cannot.
+            $result = Send-Answer $key $name $answer
+            Write-Line ('    raspuns (:sendMessage): ' + $result)
+            if ($result -eq 'trimis') {
+                $released = $true
+            }
+        }
+
         if (-not $released) {
             $pending = @(Get-PendingSteps $oauth $taskId)
             if ($pending.Count -gt 0) {
                 foreach ($step in $pending) {
+                    if ($answeredStepIds -contains $step.Id) { continue }
                     $inter = Send-Interact $oauth $taskId $step.Id $answer
-                    Write-Line ('    raspuns (:interact, pas ' + $step.Id.Substring(0,8) + '): ' + $inter)
-                    if ($inter -eq 'trimis') { $released = $true }
+                    Write-Line ('    raspuns (:interact, pas ' + $step.Id.Substring(0, 8) + '): ' + $inter)
+                    if ($inter -eq 'trimis') {
+                        $released = $true
+                        $answeredStepIds += $step.Id
+                    }
                 }
             } else {
                 Write-Line '    (:interact nu se aplica: niciun pas care cere raspuns)'
@@ -469,7 +672,29 @@ function Main() {
         }
 
         if ($released) {
+            # A successful CALL is not a release. Read the state back before
+            # marking the session as answered, otherwise a silent failure is
+            # written into the state as a success and the session is never
+            # retried. MEASURED 2026-10-28: the truth is a NEW devBoxStarted
+            # step (the agent waking up), not the public state, which lags by
+            # minutes. The wait is bounded at 420 s because the measured
+            # release on this fleet took about seven minutes.
+            $newState = Test-SessionReleased $key $name $oauth $taskId $devBoxBefore
+            Write-Line ('    stare dupa raspuns: ' + $newState)
+            if ($newState -eq 'AWAITING_USER_FEEDBACK') {
+                Write-Line '    (serverul a primit raspunsul, dar agentul nu s-a trezut - nu o marchez ca raspunsa)'
+                $released = $false
+            }
+        }
+
+        if ($released) {
             $state[$name] = $agentCount
+            if ($answeredStepIds.Count -gt 0) {
+                # Record WHICH step was answered, so the next run knows the
+                # difference between "the same question" and "a new one".
+                $merged = @($answeredSteps + $answeredStepIds) | Select-Object -Unique
+                $state[$name + '|step'] = ($merged -join ',')
+            }
             $answered++
         }
     }

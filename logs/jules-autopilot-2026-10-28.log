@@ -1,3 +1,122 @@
 ﻿[2026-10-28 22:36:20] Flota: 11 repo-uri | sesiuni blocate: 0 | mod: APPLY
 [2026-10-28 22:36:20] 
 [2026-10-28 22:36:20] Nicio sesiune blocata. Bucla Jules merge singura.
+[2026-10-28 22:44:39]   sessions: ERROARE The remote server returned an error: (401) Unauthorized.
+[2026-10-28 22:44:39] Sesiuni: 0 (lista nu a raspuns sau nu exista). Nimic de deblocat.
+[2026-10-28 22:45:07] SESIUNI: LISTA NU A RASPUNS - The remote server returned an error: (401) Unauthorized.
+[2026-10-28 22:45:07]   Asta NU inseamna "nu e nimic de deblocat". Verifica cheia Jules API.
+[2026-10-28 22:45:13] Flota: 11 repo-uri | sesiuni blocate: 1 | mod: DRY-RUN
+[2026-10-28 22:45:13] 
+[2026-10-28 22:45:34] Flota: 11 repo-uri | sesiuni blocate: 1 | mod: DRY-RUN
+[2026-10-28 22:45:34] 
+[2026-10-28 22:45:36]   sessions/7665116565709981265 (apvizual-max/Qwen-Ecosystem-Dashboard) intrebare: I have explored the codebase and the latest push. It looks like the most recent push resolved several issues: 1. Re-oriented the MCP profile (`rewire-mcp-config.ps1`), properly escaping `\` where needed in `scripts/rewir...
+[2026-10-28 22:45:36]     DRY-RUN: nu s-a trimis nimic.
+[2026-10-28 22:45:36] 
+[2026-10-28 22:45:36] Rezultat: 1 sesiuni deblocate.
+[2026-10-28 22:45:36] DRY-RUN. Nimic nu a fost trimis. Ruleaza din nou cu -Apply.
+[2026-10-28 22:45:41] Flota: 11 repo-uri | sesiuni blocate: 1 | mod: APPLY
+[2026-10-28 22:45:41] 
+[2026-10-28 22:45:43]   sessions/7665116565709981265 (apvizual-max/Qwen-Ecosystem-Dashboard) intrebare: I have explored the codebase and the latest push. It looks like the most recent push resolved several issues: 1. Re-oriented the MCP profile (`rewire-mcp-config.ps1`), properly escaping `\` where needed in `scripts/rewir...
+[2026-10-28 22:45:48]     raspuns (:sendMessage): trimis
+[2026-10-28 22:45:48] 
+[2026-10-28 22:45:48] Rezultat: 1 sesiuni deblocate.
+[2026-10-28 22:51:09] Flota: 11 repo-uri | sesiuni blocate: 1 | mod: APPLY
+[2026-10-28 22:51:09] 
+[2026-10-28 22:51:10]   sessions/7665116565709981265 (apvizual-max/Qwen-Ecosystem-Dashboard) -> intrebare deja raspunsa (1/1), sarit
+[2026-10-28 22:51:10] 
+[2026-10-28 22:51:10] Rezultat: 0 sesiuni deblocate.
+[2026-10-28 22:54:42] Flota: 11 repo-uri | sesiuni blocate: 1 | mod: DRY-RUN
+[2026-10-28 22:54:42] 
+[2026-10-28 22:54:45]   sessions/7665116565709981265 (apvizual-max/Qwen-Ecosystem-Dashboard) intrebare: I have explored the codebase and the latest push. It looks like the most recent push resolved several issues: 1. Re-oriented the MCP profile (`rewire-mcp-config.ps1`), properly escaping `\` where needed in `scripts/rewir...
+[2026-10-28 22:54:45]     DRY-RUN: nu s-a trimis nimic.
+[2026-10-28 22:54:45] 
+[2026-10-28 22:54:45] Rezultat: 1 sesiuni deblocate.
+[2026-10-28 22:54:45] DRY-RUN. Nimic nu a fost trimis. Ruleaza din nou cu -Apply.
+[2026-10-28 22:54:57] Flota: 11 repo-uri | sesiuni blocate: 1 | mod: APPLY
+[2026-10-28 22:54:57] 
+[2026-10-28 22:55:00]   sessions/7665116565709981265 (apvizual-max/Qwen-Ecosystem-Dashboard) intrebare: I have explored the codebase and the latest push. It looks like the most recent push resolved several issues: 1. Re-oriented the MCP profile (`rewire-mcp-config.ps1`), properly escaping `\` where needed in `scripts/rewir...
+[2026-10-28 22:55:05]     raspuns (:interact, pas 4e4b71a7): trimis
+[2026-10-28 22:55:05] 
+[2026-10-28 22:55:05] Rezultat: 1 sesiuni deblocate.
+[2026-10-28 22:55:55] Flota: 11 repo-uri | sesiuni blocate: 1 | mod: APPLY
+[2026-10-28 22:55:55] 
+[2026-10-28 22:55:58]   sessions/7665116565709981265 (apvizual-max/Qwen-Ecosystem-Dashboard) -> pasul pendent a fost deja raspuns, sarit
+[2026-10-28 22:55:58] 
+[2026-10-28 22:55:58] Rezultat: 0 sesiuni deblocate.
+[2026-10-28 23:00:15] Flota: 11 repo-uri | sesiuni blocate: 0 | mod: DRY-RUN
+[2026-10-28 23:00:15] 
+[2026-10-28 23:00:15] Nicio sesiune blocata. Bucla Jules merge singura.
+[2026-10-28 23:01:44] Flota: 11 repo-uri | sesiuni blocate: 1 | mod: APPLY
+[2026-10-28 23:01:44] 
+[2026-10-28 23:02:16]   sessions/3384046284391976636 (apvizual-max/MAVIS-OPTIMUS-CD) intrebare: I have been working on fixing the failures in `scripts/jules-selfcheck.ps1`. Here is my progress so far: 1. I installed `powershell` (`pwsh`) in the environment and updated the scripts to use it instead of `powershell.ex...
+[2026-10-28 23:02:16]     gate local pe apvizual-max/MAVIS-OPTIMUS-CD: UNKNOWN proba-backlog - proba nu a putut fi masurata (PROBE_BACKLOG_NOFALSIFY wide=13 narrow=13 api=13) | FILES=56 PROBLEMS=0 UNKNOWN=1 (exit=0)
+[2026-10-28 23:02:21]     raspuns (:interact, pas c2dcb0d5): trimis
+[2026-10-28 23:03:30]     stare dupa raspuns: AWAITING_USER_FEEDBACK
+[2026-10-28 23:03:30]     (serverul a primit raspunsul, dar sesiunea e inca blocata - nu o marchez ca raspunsa)
+[2026-10-28 23:03:30] 
+[2026-10-28 23:03:30] Rezultat: 0 sesiuni deblocate.
+[2026-10-28 23:06:10] Flota: 11 repo-uri | sesiuni blocate: 1 | mod: APPLY
+[2026-10-28 23:06:10] 
+[2026-10-28 23:06:43]   sessions/3384046284391976636 (apvizual-max/MAVIS-OPTIMUS-CD) intrebare: I have been working on fixing the failures in `scripts/jules-selfcheck.ps1`. Here is my progress so far: 1. I installed `powershell` (`pwsh`) in the environment and updated the scripts to use it instead of `powershell.ex...
+[2026-10-28 23:06:43]     gate local pe apvizual-max/MAVIS-OPTIMUS-CD: UNKNOWN proba-backlog - proba nu a putut fi masurata (PROBE_BACKLOG_NOFALSIFY wide=13 narrow=13 api=13) | FILES=56 PROBLEMS=0 UNKNOWN=1 (exit=0)
+[2026-10-28 23:06:47]     raspuns (:interact, pas c2dcb0d5): trimis
+[2026-10-28 23:07:56]     stare dupa raspuns: AWAITING_USER_FEEDBACK
+[2026-10-28 23:07:56]     (serverul a primit raspunsul, dar sesiunea e inca blocata - nu o marchez ca raspunsa)
+[2026-10-28 23:07:56] 
+[2026-10-28 23:07:56] Rezultat: 0 sesiuni deblocate.
+[2026-10-28 23:20:03] Flota: 11 repo-uri | sesiuni blocate: 2 | mod: DRY-RUN
+[2026-10-28 23:20:03] 
+[2026-10-28 23:20:06]   sessions/2227387981514727588 (apvizual-max/SENTINEL_PRIME) intrebare: I've been exploring the issues raised in the `test_suite.py` and `test_deployment.py` tests. The repository expects `verify-remote-clone.ps1` to correctly handle `clone_branches`, but locally it's finding two branches be...
+[2026-10-28 23:20:06]     DRY-RUN: nu s-a trimis nimic.
+[2026-10-28 23:20:38]   sessions/3384046284391976636 (apvizual-max/MAVIS-OPTIMUS-CD) intrebare: I have been working on fixing the failures in `scripts/jules-selfcheck.ps1`. Here is my progress so far: 1. I installed `powershell` (`pwsh`) in the environment and updated the scripts to use it instead of `powershell.ex...
+[2026-10-28 23:20:38]     gate local pe apvizual-max/MAVIS-OPTIMUS-CD: UNKNOWN proba-backlog - proba nu a putut fi masurata (PROBE_BACKLOG_NOFALSIFY wide=13 narrow=13 api=13) | FILES=58 PROBLEMS=0 UNKNOWN=1 (exit=0)
+[2026-10-28 23:20:38]     DRY-RUN: nu s-a trimis nimic.
+[2026-10-28 23:20:38] 
+[2026-10-28 23:20:38] Rezultat: 2 sesiuni deblocate.
+[2026-10-28 23:20:38] DRY-RUN. Nimic nu a fost trimis. Ruleaza din nou cu -Apply.
+[2026-10-28 23:21:10] Flota: 11 repo-uri | sesiuni blocate: 2 | mod: APPLY
+[2026-10-28 23:21:10] 
+[2026-10-28 23:21:13]   sessions/2227387981514727588 (apvizual-max/SENTINEL_PRIME) intrebare: I've been exploring the issues raised in the `test_suite.py` and `test_deployment.py` tests. The repository expects `verify-remote-clone.ps1` to correctly handle `clone_branches`, but locally it's finding two branches be...
+[2026-10-28 23:21:17]     raspuns (:interact, pas 5e03cfd2): trimis
+[2026-10-28 23:22:27]     stare dupa raspuns: AWAITING_USER_FEEDBACK
+[2026-10-28 23:22:27]     (serverul a primit raspunsul, dar sesiunea e inca blocata - nu o marchez ca raspunsa)
+[2026-10-28 23:22:59]   sessions/3384046284391976636 (apvizual-max/MAVIS-OPTIMUS-CD) intrebare: I have been working on fixing the failures in `scripts/jules-selfcheck.ps1`. Here is my progress so far: 1. I installed `powershell` (`pwsh`) in the environment and updated the scripts to use it instead of `powershell.ex...
+[2026-10-28 23:22:59]     gate local pe apvizual-max/MAVIS-OPTIMUS-CD: UNKNOWN proba-backlog - proba nu a putut fi masurata (PROBE_BACKLOG_NOFALSIFY wide=13 narrow=13 api=13) | FILES=59 PROBLEMS=0 UNKNOWN=1 (exit=0)
+[2026-10-28 23:23:03]     raspuns (:interact, pas c2dcb0d5): trimis
+[2026-10-28 23:24:13]     stare dupa raspuns: AWAITING_USER_FEEDBACK
+[2026-10-28 23:24:13]     (serverul a primit raspunsul, dar sesiunea e inca blocata - nu o marchez ca raspunsa)
+[2026-10-28 23:24:13] 
+[2026-10-28 23:24:13] Rezultat: 0 sesiuni deblocate.
+[2026-10-28 23:36:11] Flota: 11 repo-uri | sesiuni blocate: 3 | mod: APPLY
+[2026-10-28 23:36:11] 
+[2026-10-28 23:36:14]   sessions/2227387981514727588 (apvizual-max/SENTINEL_PRIME) intrebare: I've been exploring the issues raised in the `test_suite.py` and `test_deployment.py` tests. The repository expects `verify-remote-clone.ps1` to correctly handle `clone_branches`, but locally it's finding two branches be...
+[2026-10-28 23:36:18]     raspuns (:interact, pas 5e03cfd2): trimis
+[2026-10-28 23:37:28]     stare dupa raspuns: AWAITING_USER_FEEDBACK
+[2026-10-28 23:37:28]     (serverul a primit raspunsul, dar sesiunea e inca blocata - nu o marchez ca raspunsa)
+[2026-10-28 23:38:03]   sessions/3384046284391976636 (apvizual-max/MAVIS-OPTIMUS-CD) intrebare: I have been working on fixing the failures in `scripts/jules-selfcheck.ps1`. Here is my progress so far: 1. I installed `powershell` (`pwsh`) in the environment and updated the scripts to use it instead of `powershell.ex...
+[2026-10-28 23:38:03]     gate local pe apvizual-max/MAVIS-OPTIMUS-CD: UNKNOWN proba-backlog - proba nu a putut fi masurata (PROBE_BACKLOG_NOFALSIFY wide=13 narrow=13 api=13) | FILES=61 PROBLEMS=0 UNKNOWN=1 (exit=0)
+[2026-10-28 23:38:08]     raspuns (:interact, pas c2dcb0d5): trimis
+[2026-10-28 23:39:17]     stare dupa raspuns: AWAITING_USER_FEEDBACK
+[2026-10-28 23:39:17]     (serverul a primit raspunsul, dar sesiunea e inca blocata - nu o marchez ca raspunsa)
+[2026-10-28 23:39:22]   sessions/14353373540982298371 (apvizual-max/hermes-agent-temp) intrebare: 
+[2026-10-28 23:39:26]     raspuns (:interact, pas 43788853): trimis
+[2026-10-28 23:40:26]     stare dupa raspuns: IN_PROGRESS
+[2026-10-28 23:40:26] 
+[2026-10-28 23:40:26] Rezultat: 1 sesiuni deblocate.
+[2026-10-28 23:49:06] Flota: 11 repo-uri | sesiuni blocate: 2 | mod: DRY-RUN
+[2026-10-28 23:49:06] 
+[2026-10-28 23:49:10]   sessions/12664247506806929640 (apvizual-max/Qwen-Ecosystem-Dashboard) intrebare: I have been investigating the codebase based on your instructions. I noticed there's a CI harness `_candidate-tcv-harness.js` which points to multiple UNKNOWN issues. The latest changes merged from PR #10 involved explic...
+[2026-10-28 23:49:10]     DRY-RUN: nu s-a trimis nimic.
+[2026-10-28 23:49:14]   sessions/2227387981514727588 (apvizual-max/SENTINEL_PRIME) intrebare: I've been exploring the issues raised in the `test_suite.py` and `test_deployment.py` tests. The repository expects `verify-remote-clone.ps1` to correctly handle `clone_branches`, but locally it's finding two branches be...
+[2026-10-28 23:49:14]     DRY-RUN: nu s-a trimis nimic.
+[2026-10-28 23:49:14] 
+[2026-10-28 23:49:14] Rezultat: 2 sesiuni deblocate.
+[2026-10-28 23:49:14] DRY-RUN. Nimic nu a fost trimis. Ruleaza din nou cu -Apply.
+[2026-10-28 23:51:11] Flota: 11 repo-uri | sesiuni blocate: 1 | mod: APPLY
+[2026-10-28 23:51:11] 
+[2026-10-28 23:51:15]   sessions/12664247506806929640 (apvizual-max/Qwen-Ecosystem-Dashboard) intrebare: I have been investigating the codebase based on your instructions. I noticed there's a CI harness `_candidate-tcv-harness.js` which points to multiple UNKNOWN issues. The latest changes merged from PR #10 involved explic...
+[2026-10-28 23:51:19]     raspuns (:interact, pas 42a98beb): trimis
+[2026-10-28 23:58:30]     stare dupa raspuns: AWAITING_USER_FEEDBACK
+[2026-10-28 23:58:30]     (serverul a primit raspunsul, dar agentul nu s-a trezut - nu o marchez ca raspunsa)
+[2026-10-28 23:58:30] 
+[2026-10-28 23:58:30] Rezultat: 0 sesiuni deblocate.

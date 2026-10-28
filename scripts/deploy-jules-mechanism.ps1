@@ -37,6 +37,7 @@ param(
     [string[]]$Repos = @(),
     [string[]]$Exclude = @('apvizual-max/MAVIS-CLOUD'),
     [string]$WorkflowSource = '',
+    [string]$ActionSource = '',
     [string]$SecretsFile = 'E:\--- System Secrets\JULES - APIs.md',
     [switch]$Apply,
     [switch]$IncludeExcluded
@@ -74,6 +75,27 @@ if (-not (Test-Path -LiteralPath $WorkflowSource)) {
 }
 $workflowBytes = [System.IO.File]::ReadAllBytes($WorkflowSource)
 $workflowB64 = [Convert]::ToBase64String($workflowBytes)
+
+# The workflow calls a LOCAL action at .github/actions/jules. A local action is
+# read from the workspace, so it has to exist in the repository - a workflow
+# that references a missing local action fails in 8 seconds with "Can't find
+# 'action.yml', 'action.yaml' or 'Dockerfile' under .../.github/actions/jules".
+# MEASURED 2026-10-28 on the fleet: 4 runs failed on this mechanism with
+# "/usr/bin/jq: Argument list too long" (exit 126), which killed the step
+# BEFORE Jules was ever invoked - the upstream action hands the prompt to jq
+# as a command line argument, and Linux caps one argument at 128 KiB
+# (MAX_ARG_STRLEN). The local action reads the prompt from a FILE
+# (jq --rawfile), so the size is not a cliff. The action file therefore ships
+# with the workflow, as one unit.
+if (-not $ActionSource) {
+    $ActionSource = Join-Path $PSScriptRoot '..\.github\actions\jules\action.yaml'
+}
+if (-not (Test-Path -LiteralPath $ActionSource)) {
+    Say ('EROARE: actiunea locala sursa nu exista: ' + $ActionSource)
+    exit 2
+}
+$actionBytes = [System.IO.File]::ReadAllBytes($ActionSource)
+$actionB64 = [Convert]::ToBase64String($actionBytes)
 
 if (-not (Test-Path -LiteralPath $SecretsFile)) {
     Say ('EROARE: fisierul de secrete nu exista: ' + $SecretsFile)
@@ -176,6 +198,31 @@ foreach ($repo in $Repos) {
     } else {
         $res = Send-JsonFile $repo 'contents/.github/workflows/jules.yml' 'PUT' @{ message = 'CD: mecanism general Jules - push + @jules'; content = $workflowB64; branch = $branch }
         if ($res.Code -eq 0) { Ok $repo 'workflow' 'creat' } else { Fail $repo 'workflow' ('eroare: ' + $res.Out) }
+    }
+
+    # 2b) the LOCAL action .github/actions/jules/action.yaml
+    # The workflow references it, so it is not optional: a local action is read
+    # from the workspace and a missing one fails the run in 8 seconds. It is
+    # written BEFORE the workflow is written on a fresh repository, otherwise
+    # the first push after the install already breaks.
+    $actionPath = 'contents/.github/actions/jules/action.yaml'
+    $actionExisting = & gh api "repos/$repo/$actionPath" 2>$null
+    $actionSha = ''
+    if ($actionExisting) {
+        try { $actionSha = [string](($actionExisting | ConvertFrom-Json).sha) } catch { $actionSha = '' }
+    }
+    if ($actionSha) {
+        if (-not $Apply) {
+            Skip $repo 'actiune-locala' 'exista deja (dry-run: ar fi actualizat)'
+        } else {
+            $res = Send-JsonFile $repo $actionPath 'PUT' @{ message = 'CD: actiune Jules locala - promptul se citeste din fisier'; content = $actionB64; branch = $branch; sha = $actionSha }
+            if ($res.Code -eq 0) { Ok $repo 'actiune-locala' 'actualizata' } else { Fail $repo 'actiune-locala' ('eroare: ' + $res.Out) }
+        }
+    } elseif (-not $Apply) {
+        Skip $repo 'actiune-locala' 'ar fi creata (dry-run)'
+    } else {
+        $res = Send-JsonFile $repo $actionPath 'PUT' @{ message = 'CD: actiune Jules locala - promptul se citeste din fisier'; content = $actionB64; branch = $branch }
+        if ($res.Code -eq 0) { Ok $repo 'actiune-locala' 'creata' } else { Fail $repo 'actiune-locala' ('eroare: ' + $res.Out) }
     }
 
     # 3) secret JULES_API_KEY
