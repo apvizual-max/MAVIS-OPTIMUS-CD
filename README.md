@@ -28,6 +28,24 @@ El unifică și guvernează complet:
    - **Jules Web Dashboard:** Purjarea task-urilor rezolvate (`isAwaitingReview: true`) via `POST :delete` în calupuri de 40.
    - **GitHub Web Inbox:** Marcarea fiecărui fir de notificare ca **Done** (`DELETE /notifications/threads/:id`), obținând Inbox Zero autentic.
    - **Gmail Primary Inbox:** Marcarea ca citit, atribuirea etichetei `Optimus CD` (`Label_35`), rutarea în `CATEGORY_UPDATES` și arhivarea din `INBOX`.
+
+> **Măsurat 2026-10-28 — piciorul Gmail e descris, dar NU e armat.** În acest repo, daemonul
+> suveran rulează **două** interfețe, nu trei: Jules Cloud REST + GitHub Fleet (`gh`) — el se
+> declară chiar „Dual-Interface" (`scripts/jules_github_sovereign_daemon.ps1`). Piciorul Gmail
+> (eticheta `Optimus CD` / `Label_35`, rutarea în `CATEGORY_UPDATES`, arhivarea din `INBOX`) e
+> livrat de skill-ul `antigravity-gmail-optimus-cd`, aflat **în afara acestui repo**
+> (`Antigravity_Projects\.agents\skills\`), nu de codul CD. Cu credentialul configurat acum pe
+> mașină, API-ul Gmail răspunde **HTTP 401**: cheia `X-Goog-Api-Key` de aici e cea a serverului
+> Stitch, iar datele de utilizator Gmail cer **OAuth 2.0 cu scope**, nu cheie API. Deci
+> funcția e corect descrisă ca **skill**, dar rămâne nearmată până când credentialul OAuth
+> potrivit e montat — nu se descrie ca funcțional.
+>
+> **Măsurat 2026-10-28 — invariantul de ramuri e mai fin acum.** Controlul
+> `scripts/fleet-branch-invariant.ps1` distinge trei stări: `orfane` (lucrarea e deja în
+> main — demonstrabil de eliminat), `stale` (ne-mergeuit, peste fereastra de 72h — cere om) și
+> `active` (lucru în curs, doar raportat). Doar primele două sunt încălcare. Workflow-ul ADAPT
+> deschide ramuri de lucru `design/*` și `perf/*` ne-merge-uite; înainte de această
+> rafinare, controlul se aprindea pe muncă reală.
 4. **Hub-ul Unic de Predare (`_Handoffs/`):** Punctul canonic de handoff între agenți (Antigravity $\leftrightarrow$ Mavis Code Doctor $\leftrightarrow$ Jules), conținând prompturile de priming, debriefing și ghidurile de integrare.
 5. **Backup-ul și Clonarea Locală a Flotei (`_GitHub-Main_Repos-Local-Temp/`):** Snapshot-ul complet verificat și clonat pe disc al tuturor celor 10 repozitoare (1.04 GB, 28,579 fișiere).
 
