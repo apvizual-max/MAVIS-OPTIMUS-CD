@@ -117,6 +117,79 @@ if ($SkipProbes) {
     Write-Output 'NOTA: sondele de platforma au fost sarite (-SkipProbes). Doar verificarile statice au rulat.'
 }
 
+# --- The push-gate control -------------------------------------------------
+#
+# MEASURED 2026-10-28: the pre-push gate file vanished from disk while
+# core.hooksPath still pointed at it. Git skips a missing hook SILENTLY, so
+# the gate stopped existing and two pushes went through with no accord
+# consumed. Nothing reported it. A gate that can die without a sound is not
+# a gate, it is a habit.
+#
+# This control measures the gate of the repository that owns this script:
+#   1. resolve the effective hooks dir (core.hooksPath, else <gitdir>/hooks)
+#   2. the pre-push file must exist there and carry the marker logic
+# A missing file is a PROBLEM - the push path is unguarded - not a warning.
+# If the repository cannot be resolved the control reports UNKNOWN: it never
+# reports a pass it did not measure.
+
+$gateRepo = ''
+$gateHooksPath = ''
+$gateDir = ''
+$gateFile = ''
+try {
+    $ErrorActionPreference = 'Continue'
+    $rawRepo = & git -C $ScriptsDir rev-parse --show-toplevel 2>$null
+    if ($LASTEXITCODE -eq 0 -and $rawRepo) {
+        $gateRepo = ([string]($rawRepo | Select-Object -Last 1)).Trim()
+    }
+    $rawHooks = & git -C $ScriptsDir config --get core.hooksPath 2>$null
+    if ($LASTEXITCODE -eq 0 -and $rawHooks) {
+        $gateHooksPath = ([string]($rawHooks | Select-Object -Last 1)).Trim()
+    }
+    $rawGitDir = & git -C $ScriptsDir rev-parse --git-dir 2>$null
+    if ($LASTEXITCODE -eq 0 -and $rawGitDir) {
+        $gateGitDir = ([string]($rawGitDir | Select-Object -Last 1)).Trim()
+    }
+} catch {
+    $gateRepo = ''
+    $gateHooksPath = ''
+} finally {
+    $ErrorActionPreference = 'Stop'
+}
+
+if ($gateHooksPath) {
+    $gateDir = $gateHooksPath
+    if (-not [System.IO.Path]::IsPathRooted($gateDir)) {
+        $gateDir = Join-Path $gateRepo $gateDir
+    }
+} elseif ($gateGitDir) {
+    if ([System.IO.Path]::IsPathRooted($gateGitDir)) {
+        $gateDir = Join-Path $gateGitDir 'hooks'
+    } else {
+        $gateDir = Join-Path $gateRepo (Join-Path $gateGitDir 'hooks')
+    }
+}
+
+if (-not $gateRepo -or -not $gateDir) {
+    $unknown++
+    Write-Output 'UNKNOWN poarta-push - repository-ul sau directorul hook-urilor nu a fost rezolvat, poarta nu a putut fi masurata'
+} else {
+    $gateFile = Join-Path $gateDir 'pre-push'
+    if (-not (Test-Path -LiteralPath $gateFile)) {
+        $problems++
+        Write-Output ('FAIL poarta-push - hook-ul pre-push lipseste la ' + $gateFile + ' - git sareste hook-urile inexistente in SILENT')
+    } else {
+        $gateRaw = ''
+        try { $gateRaw = [System.IO.File]::ReadAllText($gateFile) } catch { $gateRaw = '' }
+        if ($gateRaw -notmatch 'PUSH-ACORD') {
+            $problems++
+            Write-Output ('FAIL poarta-push - hook-ul pre-push de la ' + $gateFile + ' nu contine logica de acord (PUSH-ACORD)')
+        } else {
+            Write-Output ('OK   poarta-push - hook pre-push prezent si valid la ' + $gateFile)
+        }
+    }
+}
+
 if (-not $SkipProbes) {
 # --- The idiom probe -----------------------------------------------------
 # A gate that has never been shown able to fail is a gate of unknown quality.
@@ -543,6 +616,80 @@ if ($installProbeOut -match 'PROBE_INSTALL_OK') {
 } else {
     $unknown++
     Write-Output ('UNKNOWN proba-instalare - proba nu a putut fi masurata (' + $installProbeOut.Trim() + ')')
+}
+
+# --- The push-gate behaviour probe ----------------------------------------
+#
+# Presence is not behaviour. This probe runs the LIVE hook file twice, inside a
+# sandbox git dir, so the real PUSH-ACORD marker of this repository is never
+# touched and no push can happen:
+#   a) no marker  -> the hook must REFUSE (exit 1)
+#   b) marker     -> the hook must ALLOW  (exit 0) and consume it
+# If the sandbox or the shell cannot be produced, the probe reports UNKNOWN.
+
+$gateProbeOut = ''
+$prevEap = $ErrorActionPreference
+try {
+    $ErrorActionPreference = 'Continue'
+    $shExe = ''
+    $gitCmd = Get-Command git.exe -ErrorAction SilentlyContinue
+    if ($gitCmd) {
+        $gitRoot = Split-Path -Parent (Split-Path -Parent $gitCmd.Source)
+        $cand = Join-Path $gitRoot 'bin\sh.exe'
+        if (Test-Path -LiteralPath $cand) { $shExe = $cand }
+    }
+    if (-not $shExe) {
+        $cand2 = 'C:\Program Files\Git\bin\sh.exe'
+        if (Test-Path -LiteralPath $cand2) { $shExe = $cand2 }
+    }
+    if (-not $shExe) { throw 'sh.exe nu a fost gasit' }
+    if (-not $gateFile) { throw 'fisierul hook nu a fost rezolvat' }
+
+    $sandbox = Join-Path ([System.IO.Path]::GetTempPath()) ('gate-probe-' + [guid]::NewGuid().ToString('N'))
+    $fakeGit = Join-Path $sandbox 'fakegit'
+    New-Item -ItemType Directory -Force -Path (Join-Path $fakeGit 'objects') | Out-Null
+    New-Item -ItemType Directory -Force -Path (Join-Path $fakeGit 'refs\heads') | Out-Null
+    Set-Content -LiteralPath (Join-Path $fakeGit 'HEAD') -Value 'ref: refs/heads/main' -Encoding ascii
+    Set-Content -LiteralPath (Join-Path $fakeGit 'refs\heads\main') -Value ('0' * 40) -Encoding ascii
+
+    $oldGitDir = $env:GIT_DIR
+    $env:GIT_DIR = $fakeGit
+    try {
+        $outA = & $shExe $gateFile 2>&1
+        $codeA = $LASTEXITCODE
+        $markerPath = Join-Path $fakeGit 'PUSH-ACORD'
+        Set-Content -LiteralPath $markerPath -Value 'R0 probe' -Encoding ascii
+        $outB = & $shExe $gateFile 2>&1
+        $codeB = $LASTEXITCODE
+        $markerGone = -not (Test-Path -LiteralPath $markerPath)
+    } finally {
+        $env:GIT_DIR = $oldGitDir
+    }
+
+    if ($codeA -ne 1) {
+        $gateProbeOut = 'PROBE_GATE_BAD a: hook-ul nu a refuzat fara acord (exit=' + $codeA + ')'
+    } elseif ($codeB -ne 0) {
+        $gateProbeOut = 'PROBE_GATE_BAD b: hook-ul nu a permis push-ul cu acord (exit=' + $codeB + ')'
+    } elseif (-not $markerGone) {
+        $gateProbeOut = 'PROBE_GATE_BAD c: hook-ul nu a consumat acordul'
+    } else {
+        $gateProbeOut = 'PROBE_GATE_OK'
+    }
+    Remove-Item -LiteralPath $sandbox -Recurse -Force -ErrorAction SilentlyContinue
+} catch {
+    $gateProbeOut = 'PROBE_GATE_UNMEASURABLE: ' + [string]$_
+} finally {
+    $ErrorActionPreference = $prevEap
+}
+
+if ($gateProbeOut -match 'PROBE_GATE_OK') {
+    Write-Output 'OK   proba-poarta - hook-ul refuza fara acord (exit 1) si permite cu acord (exit 0, acord consumat)'
+} elseif ($gateProbeOut -match 'PROBE_GATE_BAD') {
+    $problems++
+    Write-Output ('FAIL proba-poarta - ' + $gateProbeOut.Trim())
+} else {
+    $unknown++
+    Write-Output ('UNKNOWN proba-poarta - proba nu a putut fi masurata (' + $gateProbeOut.Trim() + ')')
 }
 }
 

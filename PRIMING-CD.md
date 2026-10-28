@@ -58,9 +58,11 @@ cd "C:\Users\apviz\.minimax-agent\projects\Mavis-Optimus-Continuous-Development\
 powershell -NoProfile -File scripts\jules-selfcheck.ps1
 ```
 
-**Acceptare:** `FILES=10 PROBLEMS=0` și `EXIT=0`, cu toate cele 5 probe de
-falsificare verzi (`proba-idiom`, `proba-checkout`, `proba-runner`,
-`proba-raport`, `proba-atribuire`).
+**Acceptare:** `FILES=52 PROBLEMS=0` și `EXIT=0`, cu sondele de falsificare
+verzi (`proba-idiom`, `proba-checkout`, `proba-runner`, `proba-raport`,
+`proba-atribuire`, `proba-instalare`, `proba-poarta`). `UNKNOWN=1` e permis
+**doar** pentru `proba-backlog` (nu există PR deschis de comparat) — un
+necunoscut se raportează, nu se presupune.
 
 **Dacă nu e verde: STOP.** Platforma e coruptă și nu ai ce măsura.
 Rapoartează exact ce a picat, nu ce presupui.
@@ -86,12 +88,19 @@ gh repo create apvizual-max/MAVIS-OPTIMUS-CD `
 **Apoi, primul push — tot în cadrul aceluiași R0:**
 
 ```powershell
-powershell -NoProfile -File "C:\Users\apviz\.minimax-agent\projects\scripts\git-autopush.ps1" -Acord
+$cd = '<CD>'
+$gitDir = (git -C $cd rev-parse --git-dir)
+Set-Content -LiteralPath (Join-Path $gitDir 'PUSH-ACORD') -Value 'R0 Popy 2026-10-28' -Encoding ascii
+git -C $cd push origin main
 ```
 
-**Acceptare:** `git ls-remote origin main` → SHA server **==** SHA HEAD local.
+Acordul e **un marker** în GIT_DIR, iar hook-ul îl consumă la push: un acord =
+o singură împingere. Fără marker, `git push` e refuzat cu exit 1.
 
-> **Nu folosi `git push` direct.** Poarta `pre-push` îl refuză, și e
+**Acceptare:** `git ls-remote origin main` → SHA server **==** SHA HEAD local, și
+`git rev-list --left-right --count origin/main...main` → `0 0`.
+
+> **Nu folosi `git push` direct fără acord.** Poarta `pre-push` îl refuză, și e
 > intenționat: o poartă pe care o poți ocoli printr-un `git push` nu e
 > poartă, e o cutie. (Măsurat 2026-10-11: 12 comituri au ajuns pe GitHub
 > fără acord, tocmai pentru că poarta exista doar ca un switch într-un
@@ -105,20 +114,30 @@ powershell -NoProfile -File "C:\Users\apviz\.minimax-agent\projects\scripts\git-
 git -C <CD> config --local core.hooksPath
 ```
 
-**Acceptare:** `C:/Users/apviz/.minimax-agent/projects/scripts/git-hooks`
+**Acceptare:** `scripts/git-hooks` — cale **relativă**, rezolvată la rădăcina
+arborelui de lucru. Poarta trăiește în arborele versionat
+(`scripts/git-hooks/pre-push`), deci un `git clean` nu o poate șterge și poate
+fi restaurată din istoric.
 
 **Probe falsificare** (rulează cu `sh` din instalarea lui Git):
 
 ```powershell
 $sh = 'C:\Program Files\Git\bin\sh.exe'
 Push-Location <CD>
-& $sh 'C:/Users/apviz/.minimax-agent/projects/scripts/git-hooks/pre-push'
+& $sh 'scripts/git-hooks/pre-push'
 "exit fara martor = $LASTEXITCODE"   # trebuie sa fie 1, si sa TIPERE
 Pop-Location
 ```
 
 **Acceptare:** fără martor → **exit 1** și mesajul „POARTA: acest repo nu se
 impinge fara acordul lui Popy". Cu martor → exit 0 și martorul consumat.
+
+**Poarta e măsurată de poartă.** `jules-selfcheck.ps1` are două controale
+dedicate: `poarta-push` (fișierul există și conține logica de acord) și
+`proba-poarta` (rulează hook-ul real într-un `git dir` de sandbox: fără marker
+→ exit 1, cu marker → exit 0 și acordul consumat). Ambele au fost verificate
+contra unor mutanți — hook lipsă → `FAIL poarta-push`; hook care acceptă
+mereu → `FAIL proba-poarta`. Măsurat 2026-10-28.
 
 **Verifică și că poarta nu s-a scurs global:**
 

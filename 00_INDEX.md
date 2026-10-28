@@ -85,7 +85,9 @@ Consecință practică: **toate operațiile git se rulează din rădăcina proie
 
 GIT_DIR-ul separat. `git rev-parse --git-dir` întoarce `E:/Google/GitData-Optimus-CD`.
 
-Hook-urile sunt și ele în afara arborelui cloud: `core.hooksPath = C:/Users/apviz/.minimax-agent/projects/scripts/git-hooks`.
+Hook-ul de push trăiește în arborele versionat: `core.hooksPath = scripts/git-hooks` (relativ, rezolvat la rădăcina arborelui), adică `scripts/git-hooks/pre-push`. Fiind urmărit de git, un `git clean` nu-l poate șterge și poate fi restaurat din istoric.
+
+Măsurat 2026-10-28: când hook-ul era o copie într-un director din afara arborelui, a dispărut de pe disk, poarta a murit în tăcime (git sare hook-urile inexistente) și două push-uri au trecut fără niciun consum de acord. Azi poarta are și un control care o verifică: `jules-selfcheck.ps1` → `poarta-push` (fișierul există) și `proba-poarta` (hook-ul real refuză fără acord, permite cu acord și consumă martorul).
 
 Poarta de push (`pre-push`) consumă un singur acord, marcat prin fisierul `PUSH-ACORD` din GIT_DIR.
 

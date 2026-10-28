@@ -1,0 +1,41 @@
+#!/bin/sh
+# pre-push - POARTA pe push pentru acest repo.
+#
+# De ce exista: masurat 2026-10-11, 12 comituri au ajuns pe GitHub fara acordul
+# lui Popy. Portile din script (-Acord) se ocolesc prin `git push` direct: un
+# script impune o regula doar fata de cel care coopteaza. Asta nu e o poarta,
+# e o cutie.
+#
+# Refuzul se face PE SERVER, nu se modifica nimic acolo. Se consuma un singur
+# acord: un -Acord = o singura impingere.
+#
+# UNDE TRIAIT: acest fisier este SINGURA copie a portii pentru repo-ul CD.
+# Este versionat in acest repo (scripts/git-hooks/pre-push), deci:
+#   - un `git clean` nu-l poate sterge (fisier urmarit de git)
+#   - se poate restaura din istoric daca dispare
+#   - nu mai exista o copie "live" in afara arborelui care sa poata driftui
+# core.hooksPath = scripts/git-hooks (relativ, rezolvat la radacina arborelui).
+#
+# NOTA 2026-10-28: fisierul a disparit o data de pe disk (copie neversionata
+# intr-un director din afara arborelui, eliminata de un `git clean` de control
+# negativ). Portia a fost INEXISTENTA cateva ore si doua push-uri au trecut
+# fara niciun consum de acord. De aceea poarta are acum un control care o
+# verifica (scripts/jules-selfcheck.ps1, controlul "poarta-push") si fisierul
+# ei traieste in arborele versionat.
+#
+# Scoaterea portii: git config --local --unset core.hooksPath
+# (si stergerea acestui fisier). Nu se atinge nimic din interfata Popy.
+
+marker="$(git rev-parse --git-dir)/PUSH-ACORD"
+if [ -f "$marker" ]; then
+  rm -f "$marker"
+  exit 0
+fi
+
+echo ""
+echo "  POARTA: acest repo nu se impinge fara acordul lui Popy."
+echo "  Orice push direct e refuzat. Nu e o defectiune, e poarta."
+echo "  Calea corecta: consuma un acord (marker PUSH-ACORD) inainte de push."
+echo "  Scriptul de push al repo-ului, daca exista: scripts\\git-autopush.ps1 -Acord"
+echo ""
+exit 1

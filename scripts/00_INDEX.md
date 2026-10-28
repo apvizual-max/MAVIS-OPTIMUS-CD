@@ -1,17 +1,23 @@
 ﻿# 00_INDEX — 02_Areas/02-2-AI-SOT/CASA/OPTIMUS - Prime/Optimus_CD (by Jules)/scripts
 
-**53 fișiere · 227 KB · 0 subfoldere**
+**54 fișiere · 236 KB · 1 subfoldere**
 
 > Generat automat de `02_Areas/02-2-AI-SOT/02-2-1-AI-Kit/AI-Kit_manual/build-index.ps1` și `align-index.ps1`. Nu edita manual — rulează scriptul din nou.
 > Randul **De ce e aici** de mai sus, daca exista, se pastreaza la fiecare regenerare.
 
 ## Ce e aici
 
-Cele mai frecvente două extensii sunt `.ps1` (51 din 53 fișiere) și `.bat` (1 din 53 fișiere). Cel mai mare element din folder e `jules-lib.ps1` (37 KB)
+Cele mai frecvente două extensii sunt `.ps1` (52 din 54 fișiere) și `.bat` (1 din 54 fișiere). Un raft copil: `git-hooks`; cel mai mare element din folder e `jules-lib.ps1` (37 KB)
 
 ## Cuvinte cheie
 
 `scripts` · `jules` · `lib` · `.ps1` · `.bat`
+
+## Subfoldere
+
+_Fiecare raft e legat la indexul lui. Un index care nu e legat nu e în arbore._
+
+- [`git-hooks`](<git-hooks/00_INDEX.md>) — 1 fișiere · 0 subfoldere
 
 ## Fișiere
 
@@ -50,11 +56,12 @@ Cele mai frecvente două extensii sunt `.ps1` (51 din 53 fișiere) și `.bat` (1
 | `jules-install.ps1` | 9 KB | 2026-10-24 |
 | `jules-lib.ps1` | 37 KB | 2026-10-24 |
 | `jules-scan-staged.ps1` | 7 KB | 2026-10-24 |
-| `jules-selfcheck.ps1` | 29 KB | 2026-10-27 |
+| `jules-selfcheck.ps1` | 33 KB | 2026-10-28 |
 | `jules-triage.ps1` | 11 KB | 2026-10-22 |
 | `jules-verify.ps1` | 17 KB | 2026-10-22 |
 | `list_github_prs.ps1` | 321 B | 2026-10-24 |
 | `probe-false-zero.ps1` | 3 KB | 2026-10-27 |
+| `probe-install-fixture.ps1` | 5 KB | 2026-10-28 |
 | `purge_completed_awaiting_tasks.ps1` | 1 KB | 2026-10-27 |
 | `register_task.ps1` | 2 KB | 2026-10-28 |
 | `run_sovereign_sync.bat` | 712 B | 2026-10-24 |
