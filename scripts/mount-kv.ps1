@@ -69,14 +69,26 @@ try {
     $script:KvLogPath = ''
 }
 
+$script:KvLogWriteFailures = 0
 function Write-KvOut {
     param([Parameter(Mandatory = $true)][AllowEmptyString()][string]$Message)
     [Console]::Out.WriteLine($Message)
     if ($script:KvLogPath) {
-        try {
-            Add-Content -LiteralPath $script:KvLogPath -Value ('[' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss') + '] [session ' + (Get-Process -Id $PID).SessionId + '] ' + $Message) -Encoding UTF8 -ErrorAction Stop
-        } catch {
+        # MEASURED 2026-10-29: the empty catch here DISCARDED the entry on a
+        # write failure ("used by another process"). This log is the mount
+        # record - the thing that explains WHY the vault was not mounted.
+        # Retry, then count the loss. Same idiom as jules-lib.ps1.
+        $line = '[' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss') + '] [session ' + (Get-Process -Id $PID).SessionId + '] ' + $Message
+        $written = $false
+        for ($attempt = 1; $attempt -le 5 -and -not $written; $attempt++) {
+            try {
+                Add-Content -LiteralPath $script:KvLogPath -Value $line -Encoding UTF8 -ErrorAction Stop
+                $written = $true
+            } catch {
+                Start-Sleep -Milliseconds (250 * [math]::Pow(2, $attempt - 1))
+            }
         }
+        if (-not $written) { $script:KvLogWriteFailures++ }
     }
 }
 

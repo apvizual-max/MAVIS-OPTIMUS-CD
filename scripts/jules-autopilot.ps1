@@ -80,13 +80,26 @@ try {
     $script:LogPath = ''
 }
 
+$script:LogWriteFailures = 0
 function Write-Line([string]$text) {
     Write-Host $text
     if ($script:LogPath) {
-        try {
-            Add-Content -LiteralPath $script:LogPath -Value ('[' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss') + '] ' + $text) -Encoding UTF8 -ErrorAction Stop
-        } catch {
+        # MEASURED 2026-10-29: the empty catch here DISCARDED the entry on a
+        # write failure ("used by another process" - DriveFS holding the file
+        # open, or a reader holding it). This log is the fleet heartbeat: a
+        # lost line is a session nobody will ever hear about. Same
+        # retry-and-count idiom as jules-lib.ps1 and the sovereign daemon.
+        $line = '[' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss') + '] ' + $text
+        $written = $false
+        for ($attempt = 1; $attempt -le 5 -and -not $written; $attempt++) {
+            try {
+                Add-Content -LiteralPath $script:LogPath -Value $line -Encoding UTF8 -ErrorAction Stop
+                $written = $true
+            } catch {
+                Start-Sleep -Milliseconds (250 * [math]::Pow(2, $attempt - 1))
+            }
         }
+        if (-not $written) { $script:LogWriteFailures++ }
     }
 }
 
@@ -707,6 +720,9 @@ function Main() {
 
     Write-Line ''
     Write-Line ('Rezultat: ' + $answered + ' sesiuni deblocate.')
+    if ($script:LogWriteFailures -gt 0) {
+        Write-Line ('ATENTIE: ' + $script:LogWriteFailures + ' randuri de jurnal nu au putut fi scrise.')
+    }
     if (-not $Apply) {
         Write-Line 'DRY-RUN. Nimic nu a fost trimis. Ruleaza din nou cu -Apply.'
     }

@@ -38,9 +38,23 @@ if (-not (Test-Path -LiteralPath $logDir)) {
     New-Item -ItemType Directory -Path $logDir -Force | Out-Null
 }
 
+$script:LogWriteFailures = 0
 function Write-Line([string]$text) {
     $line = '[' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss') + '] ' + $text
-    Add-Content -Path $LogFile -Value $line -Encoding UTF8
+    # MEASURED 2026-10-29: the same write race that cost the sovereign daemon
+    # 2 log lines (DriveFS or a reader holding the file) applies here, and this
+    # log is the health record of the mounted vault. Retry, then count the
+    # loss. Same idiom as jules-lib.ps1.
+    $written = $false
+    for ($attempt = 1; $attempt -le 5 -and -not $written; $attempt++) {
+        try {
+            Add-Content -LiteralPath $LogFile -Value $line -Encoding UTF8 -ErrorAction Stop
+            $written = $true
+        } catch {
+            Start-Sleep -Milliseconds (250 * [math]::Pow(2, $attempt - 1))
+        }
+    }
+    if (-not $written) { $script:LogWriteFailures++ }
     Write-Host $line
 }
 

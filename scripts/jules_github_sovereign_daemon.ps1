@@ -24,13 +24,35 @@ $logDir = Join-Path (Split-Path -Parent $PSScriptRoot) 'reports'
 if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir -Force | Out-Null }
 $logFile = Join-Path $logDir "SOVEREIGN_MAINTENANCE_LOG.md"
 
+# MEASURED 2026-10-29: Add-Content opens the log without a write share, so a
+# concurrent reader (or a second writer) makes the write fail with "The
+# process cannot access the file because it is being used by another process"
+# - and the entry is LOST. Measured on this repo: the 02:34 run lost 2 lines
+# that way (the Pass 3 and Pass 4 headers). A journal write must never kill
+# the run it describes, and it must never disappear silently. It retries,
+# counts the loss and reports it at the end. Same idiom as jules-lib.ps1 and
+# run-jules-daily-logged.ps1.
+$script:LogWriteFailures = 0
+function Write-LogLine([string]$entry) {
+    $written = $false
+    for ($attempt = 1; $attempt -le 5 -and -not $written; $attempt++) {
+        try {
+            Add-Content -LiteralPath $logFile -Value $entry -Encoding UTF8 -ErrorAction Stop
+            $written = $true
+        } catch {
+            Start-Sleep -Milliseconds (250 * [math]::Pow(2, $attempt - 1))
+        }
+    }
+    if (-not $written) { $script:LogWriteFailures++ }
+}
+
 function Log-Message([string]$msg) {
     $entry = "[$(Get-Date -Format 'HH:mm:ss')] $msg"
     if (-not $Silent) { Write-Host $entry }
-    Add-Content -Path $logFile -Value $entry -Encoding UTF8
+    Write-LogLine $entry
 }
 
-Add-Content -Path $logFile -Value "`n## Sync Execution: $timestamp" -Encoding UTF8
+Write-LogLine "`n## Sync Execution: $timestamp"
 Log-Message "=== Starting Antigravity Sovereign Dual-Interface Sync ==="
 
 # ==========================================
@@ -363,4 +385,7 @@ if (Test-Path -LiteralPath $sweepScript) {
 }
 
 Log-Message "=== Antigravity Sovereign Dual-Interface Sync Finished Successfully ==="
-Add-Content -Path $logFile -Value "`n---\n" -Encoding UTF8
+Write-LogLine "`n---\n"
+if ($script:LogWriteFailures -gt 0) {
+    Write-Host ('LOG WRITE FAILURES: ' + $script:LogWriteFailures + ' - ' + $logFile)
+}

@@ -34,6 +34,11 @@ se adaugă aici.** Cine vine după altcineva citește mai întâi acest fișier.
   botului Jules de pe `google.com` a întors **0** — nu există e-mail direct de
   la Jules. Un `from:(...)` cu paranteze cade pe potrivire de text integral.
   Familie = adresă exactă, verificată pe domeniul real.
+- **O scriere de jurnal nu se pierde tăcut.** `Add-Content` deschide fișierul
+  fără share de scriere, deci un cititor (sau DriveFS) o face să pică și
+  rândul **se pierde**. Măsurat 2026-10-29: runul 02:34 a pierdut 2 rânduri
+  (antetele Pass 3 și Pass 4). Regula: reîncearcă, dacă tot pici **numără
+  pierderea și o raportează**, și nu ucide runul pe care îl descrie.
 
 ## Jurnal
 
@@ -55,3 +60,4 @@ se adaugă aici.** Cine vine după altcineva citește mai întâi acest fișier.
 | 2026-10-29T00:50:43Z | #165, #169 (MAVIS-CLOUD) | `Closed` cu dovadă, nu cu urlare | obiectivul a aterizat în `main` prin PR #182 (squash-merge): `mavis-tools/report-build.js` (regex combinat) + `mavis-tools/benchmark-report-build.js` (măsurătoarea) | **#170 lăsat DESCHIS**: comentariul de rațional din PR #172 nu e în `main` — închiderea ar ascunde lucru neterminat |
 | 2026-10-29T00:53:00Z | — | familia de e-mail extinsă și triată: **1077 mesaje**, **0 în INBOX** | `scripts/alignment-gmail.js` — 1062 GitHub + 7 Linear + 3 „at risk of suspension" + 5 „billing account"; celelalte **1204** necitite în INBOX sunt mail personal (136 domenii: LinkedIn 356, Jooble 104, Substack 56…), neatins | verificarea e acum **aritmetică pe id-uri**, nu expresie de căutare |
 | 2026-10-29T00:55:00Z | — | `JulesDailyLoop` **dezactivat** (următoarea rulare: N/A) | singurul scheduler care crea taskuri (issue + eticheta `jules` → sesiune); daemonul 03:00 și autopilotul 03:06 doar deblokează, nu creează | reactivare: `schtasks /Change /TN "JulesDailyLoop" /Enable` |
+| 2026-10-29T01:20:00Z | — | nicio scriere de jurnal nu se mai pierde tăcut | `jules_github_sovereign_daemon.ps1`, `jules-autopilot.ps1`, `vault_mount_health.ps1`, `mount-kv.ps1` — `Add-Content` fără share de scriere; un cititor (sau DriveFS) face scrierea să pică și rândul **se pierde** | măsurat: runul 02:34 a pierdut 2 rânduri; falsificat cu un mâner concurent — controlul **pierde** rândul, repararea **reușește la retry (814 ms)** sau **numără** pierderea fără să ucidă runul |
