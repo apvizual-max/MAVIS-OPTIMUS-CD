@@ -21,10 +21,16 @@ WHAT TO DO, IN THIS ORDER:
 1. Read AGENTS.md and JULES-CONTEXT.md FIRST, if they exist. They carry the
    project rules, the invariants and the mandatory report format. If neither
    exists, follow the rules in this prompt.
-2. Run the repository's own verification: scripts/jules-selfcheck.ps1 and the
-   verification commands from JULES-CONTEXT.md. Report the REAL output and the
-   REAL exit code. If a check fails, name it and stop there. Do not repair a
-   check you could not reproduce.
+2. Run the repository's own verification. Your sandbox is Linux, so the
+   commands that exist there are the ones in .github/workflows/verify.yml -
+   read that file and run its steps as they are written (bash). The Windows
+   gate (scripts/jules-selfcheck.ps1) CANNOT run in your sandbox: do not
+   pretend it did, and do not spend the task trying to make PowerShell work.
+   If a verification command does not apply to your sandbox, say so by name
+   and report it as NOT RUN here - not as passed, and not as failed.
+   Report the REAL output and the REAL exit code of everything you did run.
+   If a check fails, name it and stop there. Do not repair a check you could
+   not reproduce.
 3. Judge the alignment across the three interfaces and say explicitly whether
    the current state is the better solution, or whether a simpler, more
    robust, cheaper or safer one exists. Argue with numbers.
