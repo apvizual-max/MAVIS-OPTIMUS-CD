@@ -1,0 +1,38 @@
+@jules - alignment run for this repository, across three interfaces.
+
+You are checking whether this repository is aligned with the Continuous
+Development process, alongside the other two interfaces (GitHub fleet and
+Gmail triage), and you propose concrete improvements if you find any.
+
+MEASURED CONTEXT (2026-10-29). Read it as measured fact, not as opinion:
+- The general Jules mechanism changed: the push trigger and the weekly cron
+  were REMOVED. Jules is activated only by an explicit request:
+  workflow_dispatch, a comment containing @jules, or an issue labelled
+  jules.
+- The ceiling is 15 simultaneous tasks (IN_PROGRESS + AWAITING_USER_FEEDBACK).
+  The guard lives in .github/actions/jules, the only place where a session is
+  created, so no trigger can get past it.
+- The installer now writes both files in ONE commit and writes nothing when
+  the bytes are identical: 0 commit = 0 run = 0 Jules session.
+- Before the correction there were 17 open sessions, over the ceiling. That is
+  exactly when Jules goes silent.
+
+WHAT TO DO, IN THIS ORDER:
+1. Read AGENTS.md and JULES-CONTEXT.md FIRST, if they exist. They carry the
+   project rules, the invariants and the mandatory report format. If neither
+   exists, follow the rules in this prompt.
+2. Run the repository's own verification: scripts/jules-selfcheck.ps1 and the
+   verification commands from JULES-CONTEXT.md. Report the REAL output and the
+   REAL exit code. If a check fails, name it and stop there. Do not repair a
+   check you could not reproduce.
+3. Judge the alignment across the three interfaces and say explicitly whether
+   the current state is the better solution, or whether a simpler, more
+   robust, cheaper or safer one exists. Argue with numbers.
+4. If there is a concrete improvement, implement it and open a PULL REQUEST.
+   Never push directly to the default branch.
+5. If nothing needs changing, do NOT open a PR. Write only the verdict on the
+   commit: "VERDICT: nothing to repair. Checks: <what you ran>".
+6. Use the report format from JULES-CONTEXT.md.
+
+Do not ask for approval and do not wait for a human. Work, measure, open the
+PR. Stop only when a project rule forbids the action.
