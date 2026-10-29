@@ -113,3 +113,37 @@
 [2026-10-29 01:39:39]   sessions/3384046284391976636 (apvizual-max/MAVIS-OPTIMUS-CD) -> pasul pendent a fost deja raspuns, sarit
 [2026-10-29 01:39:39] 
 [2026-10-29 01:39:39] Rezultat: 5 sesiuni deblocate.
+[2026-10-29 01:51:10] Flota: 11 repo-uri | sesiuni blocate: 2 | mod: APPLY
+[2026-10-29 01:51:10] 
+[2026-10-29 01:51:15]   sessions/6618144273927722234 (apvizual-max/Qwen-Ecosystem-Dashboard) intrebare: I've started exploring the environment and running the harness script `_candidate-tcv-harness.js`. The test is currently blocked from passing the certification (3 clean passes) due to several `UNKNOWN` and `FAIL` results...
+[2026-10-29 01:51:19]     raspuns (:interact, pas f57dc8b2): trimis
+[2026-10-29 01:58:28]     stare dupa raspuns: AWAITING_USER_FEEDBACK
+[2026-10-29 01:58:28]     (serverul a primit raspunsul, dar agentul nu s-a trezut - nu o marchez ca raspunsa)
+[2026-10-29 01:58:32]   sessions/6393938457179940947 (apvizual-max/SENTINEL_PRIME) -> pasul pendent a fost deja raspuns, sarit
+[2026-10-29 01:58:32] 
+[2026-10-29 01:58:32] Rezultat: 0 sesiuni deblocate.
+[2026-10-29 02:06:27]   token OAuth expirat la 02:06:09 - reimprospatez
+[2026-10-29 02:06:45] Flota: 11 repo-uri | sesiuni blocate: 4 | mod: APPLY
+[2026-10-29 02:06:45] 
+[2026-10-29 02:07:13]     stare dupa raspuns: TREZIT(dev=2)
+[2026-10-29 02:07:17]   sessions/6618144273927722234 (apvizual-max/Qwen-Ecosystem-Dashboard) intrebare: I've started exploring the environment and running the harness script `_candidate-tcv-harness.js`. The test is currently blocked from passing the certification (3 clean passes) due to several `UNKNOWN` and `FAIL` results...
+[2026-10-29 02:07:21]     raspuns (:interact, pas f57dc8b2): trimis
+[2026-10-29 02:14:31]     stare dupa raspuns: AWAITING_USER_FEEDBACK
+[2026-10-29 02:14:31]     (serverul a primit raspunsul, dar agentul nu s-a trezut - nu o marchez ca raspunsa)
+[2026-10-29 02:14:35]   sessions/12616532276286869540 (apvizual-max/Optimus-Mavis-Skills) intrebare: I understand the requirement is to use a `VERDICT: nothing to repair. Checks: ...` empty commit to satisfy the project rule when no changes are needed. However, git push to the main branch is disabled for me, and pushing...
+[2026-10-29 02:14:39]     raspuns (:interact, pas 6effc9fb): trimis
+[2026-10-29 02:14:58]     stare dupa raspuns: TREZIT(dev=3)
+[2026-10-29 02:15:02]   sessions/6393938457179940947 (apvizual-max/SENTINEL_PRIME) intrebare: I have followed the instructions to run the testing procedures inside my sandbox. As you commanded, I handled missing sandbox dependencies (like `powershell`, which is needed for the Tier 1 check and `ContextPressure`, a...
+[2026-10-29 02:15:07]     raspuns (:interact, pas 50db4a3e): trimis
+[2026-10-29 02:15:10]     stare dupa raspuns: PAUSED
+[2026-10-29 02:15:10] 
+[2026-10-29 02:15:10] Rezultat: 3 sesiuni deblocate.
+[2026-10-29 02:21:10] Flota: 11 repo-uri | sesiuni blocate: 0 | mod: APPLY
+[2026-10-29 02:21:10] 
+[2026-10-29 02:21:10] Nicio sesiune blocata. Bucla Jules merge singura.
+[2026-10-29 02:36:10] Flota: 11 repo-uri | sesiuni blocate: 0 | mod: APPLY
+[2026-10-29 02:36:11] 
+[2026-10-29 02:36:11] Nicio sesiune blocata. Bucla Jules merge singura.
+[2026-10-29 02:51:08] Flota: 11 repo-uri | sesiuni blocate: 0 | mod: APPLY
+[2026-10-29 02:51:08] 
+[2026-10-29 02:51:08] Nicio sesiune blocata. Bucla Jules merge singura.

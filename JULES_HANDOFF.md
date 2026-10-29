@@ -28,6 +28,12 @@ se adaugă aici.** Cine vine după altcineva citește mai întâi acest fișier.
 - **Plafonul se pune în punctul unde se creează resursa**, adică în
   `.github/actions/jules` (singurul loc unde se creează o sesiune). Un plafon
   pus în trigger se ocolește.
+- **O familie de e-mail se recunoaște pe expeditorul real, nu pe un
+  substring.** Măsurat 2026-10-29: `from:(google-labs-jules)` a întors **895
+  mail-uri de la `github.com`** care doar menționau robotul, iar expeditorul
+  botului Jules de pe `google.com` a întors **0** — nu există e-mail direct de
+  la Jules. Un `from:(...)` cu paranteze cade pe potrivire de text integral.
+  Familie = adresă exactă, verificată pe domeniul real.
 
 ## Jurnal
 
@@ -45,3 +51,7 @@ se adaugă aici.** Cine vine după altcineva citește mai întâi acest fișier.
 | 2026-10-29T00:10:22Z | — | `2ff81bb` push prin poartă cu R0 | `scripts/alignment-run.ps1` + `alignment-gmail.js` + `alignment-prompt.txt` — procedura de aliniere devine instrument de repo, nu scripturi temporare | următoarea aliniere: `powershell -NoProfile -File scripts\alignment-run.ps1 -Apply`; **`skills/antigravity-gmail-optimus-cd/SKILL.md` conține același literal de e-mail și ar pica la propria poartă la următoarea editare — lărgirea domeniilor permise îi aparține lui Popy** |
 | 2026-10-29T00:22:40Z | — | regula e-mail corectată: o adresă robot publică, adăugată exact, nu domeniul | `verify.yml` (pasul „Email canonic") + `scripts/jules-scan-staged.ps1` — ambele se scanau cu propria regulă, deci adresa e **construită din părți**, altfel regula s-ar bloca pe sine | măsurat: audit al întregului arbore → **0 încălcări** (înainte: 1); `Verificare` rulează la 03:00 UTC și nu ar mai fi picat pe un fals |
 | 2026-10-29T00:28:10Z | — | poarta putea acum să se scaneze pe sine | `scripts/jules-scan-staged.ps1` — excepția „platforma declară regulile" era **cod mort**: compara numele folderului platformei cu o cale relativă din repo, deci nu se potrivea niciodată; staging-ul scannerului pica pe marca interzisă pe care el însuși o declară | prefixul e derivat acum **relativ la rădăcina repo-ului** → `scripts/`, `config/`; `README.md`, `skills/`, `tests/` rămân verificate; saltul e raportat, nu tăcut |
+| 2026-10-29T00:34:24Z | — | daemonul suveran: **23 PR-uri → 0 deschise** | flota: fiecare repo cu **o singură ramură (`main`)**; 47 taskuri purjate din dashboard-ul Jules; 4 ramuri orfane șterse; 500 notificări marcate DONE | singura cale care mai crea taskuri era `JulesDailyLoop` (08:00) → dezactivat la 00:55Z |
+| 2026-10-29T00:50:43Z | #165, #169 (MAVIS-CLOUD) | `Closed` cu dovadă, nu cu urlare | obiectivul a aterizat în `main` prin PR #182 (squash-merge): `mavis-tools/report-build.js` (regex combinat) + `mavis-tools/benchmark-report-build.js` (măsurătoarea) | **#170 lăsat DESCHIS**: comentariul de rațional din PR #172 nu e în `main` — închiderea ar ascunde lucru neterminat |
+| 2026-10-29T00:53:00Z | — | familia de e-mail extinsă și triată: **1077 mesaje**, **0 în INBOX** | `scripts/alignment-gmail.js` — 1062 GitHub + 7 Linear + 3 „at risk of suspension" + 5 „billing account"; celelalte **1204** necitite în INBOX sunt mail personal (136 domenii: LinkedIn 356, Jooble 104, Substack 56…), neatins | verificarea e acum **aritmetică pe id-uri**, nu expresie de căutare |
+| 2026-10-29T00:55:00Z | — | `JulesDailyLoop` **dezactivat** (următoarea rulare: N/A) | singurul scheduler care crea taskuri (issue + eticheta `jules` → sesiune); daemonul 03:00 și autopilotul 03:06 doar deblokează, nu creează | reactivare: `schtasks /Change /TN "JulesDailyLoop" /Enable` |

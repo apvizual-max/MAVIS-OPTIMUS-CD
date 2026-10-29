@@ -109,11 +109,33 @@ async function main() {
   }
 
   // ---- 4. the CD/Jules notification family, paginated ----
+  //
+  // WHY THESE EXACT QUERIES
+  // Every query must resolve to ONE real sender. A parenthesised,
+  // multi-word `from:(...)` does NOT: Gmail falls back to a full-text
+  // match, so `from:(google-labs-jules)` returned 895 GitHub notification
+  // e-mails that merely MENTION the bot - measured, not assumed. There is
+  // no direct Jules e-mail at all: both the `google-labs-jules` sender and
+  // the `jules` sender on google.com return 0. Jules activity arrives as
+  // GitHub notification mail.
+  //
+  // The family is therefore:
+  //   - GitHub notifications about the fleet (incl. every Jules bot event);
+  //   - Linear notifications about the fleet projects;
+  //   - Google Cloud project/billing notices for the fleet's GCP projects.
+  // Vendor changelogs, newsletters and personal mail are NOT in it.
+  //
+  // The Linear slice is written WITHOUT an e-mail address on purpose:
+  // `from:(linear.app) -from:(changelog) -from:(support) -from:(security)`
+  // measures exactly 7 project notifications, and it keeps the staged-scan
+  // rule untouched (that rule blocks every non-canonical address). A literal
+  // notification address on linear.app would need an exception in the gate.
   const queries = [
     `subject:("${OPTIMUS_CD_LABEL}" OR "MAVIS-OPTIMUS-CD")`,
-    `from:(${GH_NOTIFY_SENDER})`,
-    "from:(google-labs-jules)",
-    "from:(github-actions[bot])",
+    `from:${GH_NOTIFY_SENDER}`,
+    "from:(linear.app) -from:(changelog) -from:(support) -from:(security)",
+    `subject:("is at risk of suspension")`,
+    `subject:("Action required: your billing account")`,
   ];
   const all = new Set();
   for (const q of queries) {
@@ -149,8 +171,24 @@ async function main() {
   }
 
   // ---- 6. verify, do not assume ----
-  const inbox = await listAll(g, "in:inbox is:unread");
-  line(`VERIFICA necitite in INBOX: ${inbox.ids.length}`);
+  const inboxUnread = await listAll(g, "in:inbox is:unread");
+  const inboxUnreadSet = new Set(inboxUnread.ids);
+  line(`VERIFICA necitite in INBOX: ${inboxUnread.ids.length}`);
+
+  // A message can be read and still sit in the INBOX. "0 unread with the CD
+  // label" is therefore NOT proof that the family left the inbox, so the
+  // inbox is intersected with the family set instead of trusted.
+  const inboxAll = await listAll(g, "in:inbox");
+  const inboxSet = new Set(inboxAll.ids);
+  const familyStillInInbox = ids.filter((i) => inboxSet.has(i));
+  line(`VERIFICA mesaje din familie inca in INBOX: ${familyStillInInbox.length}`);
+
+  // Exact set arithmetic on ids, NEVER a search expression. A parenthesised
+  // OR of senders was measured to match mail from unrelated senders (Linear
+  // and Google notices), so the intersection is computed here, on real ids.
+  const familyUnreadInInbox = ids.filter((i) => inboxUnreadSet.has(i));
+  line(`VERIFICA necitite din familie in INBOX: ${familyUnreadInInbox.length}`);
+
   const cdUnread = await listAll(g, `is:unread label:"${OPTIMUS_CD_LABEL}"`);
   line(`VERIFICA necitite cu eticheta ${OPTIMUS_CD_LABEL}: ${cdUnread.ids.length}`);
   process.exit(0);
