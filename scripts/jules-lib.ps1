@@ -483,11 +483,34 @@ function Get-TriageRepos {
 }
 
 function Get-DispatchRepos {
-    param([object]$Registry)
+    # MEASURED 2026-10-29: this function had NO exclusion, and the registry
+    # carries MAVIS-CLOUD with dispatch=true. The daily loop (JulesDailyLoop,
+    # 08:00) therefore created a Jules session on the repository where Jules
+    # was ALREADY working - exactly the interference that was ruled out
+    # ("Jules lucreaza acum pe mavis_cloud, deci sa nu te intereferezi cu
+    # munca lui sa stii de el ca lucreaza si sa-l lasi sa termine").
+    #
+    # The exclusion lives HERE, in the one place that decides who receives a
+    # dispatched task, so no caller can get past it. It applies to the
+    # AUTOMATED path only: an explicit manual dispatch
+    # (jules-dispatch.ps1 -Repo MAVIS-CLOUD) goes through Get-RepoEntry and
+    # still works, because a human asked for it.
+    param(
+        [object]$Registry,
+        [string[]]$Exclude = @('apvizual-max/MAVIS-CLOUD')
+    )
     if (-not $Registry) { $Registry = Get-RepoRegistry }
     $out = @()
     foreach ($r in $Registry.repos) {
-        if ($r.dispatch -eq $true) { $out += $r }
+        if ($r.dispatch -ne $true) { continue }
+        $full = ''
+        if ($r.remote) { $full = ([string]$r.remote) -replace '^https?://github\.com/', '' -replace '\.git$', '' }
+        if (-not $full) { $full = [string]$r.name }
+        if ($Exclude -contains $full) {
+            Write-JulesLog -Message ('dispatch exclus: ' + $full + ' - Jules lucreaza acolo; nu i se trimit taskuri noi') -Level 'STEP'
+            continue
+        }
+        $out += $r
     }
     return $out
 }
