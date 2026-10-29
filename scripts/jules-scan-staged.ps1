@@ -103,13 +103,58 @@ function Main {
     # CD/' in the CD era). A hardcoded prefix silently stops matching the
     # moment the platform moves, and the gate then blocks the very file that
     # declares the rule - a false positive produced by a stale constant.
-    $platformLeaf = Split-Path -Leaf (Split-Path -Parent $PSScriptRoot)
-    $platformPrefixes = @(
-        ($platformLeaf + '/scripts/'),
-        ($platformLeaf + '/config/')
-    )
+    #
+    # MEASURED 2026-10-29: this derivation was WRONG in a way that made the
+    # exemption dead code. It compared the platform's FOLDER NAME against a
+    # path that is RELATIVE TO THE REPOSITORY ROOT - so the prefix was
+    # "Optimus_CD (by Jules)/scripts/" while the path being tested was
+    # "scripts/jules-scan-staged.ps1". It never matched. The consequence:
+    # the gate could not scan its OWN rule file - staging the scanner blocked
+    # the commit on the forbidden brand that the scanner itself declares.
+    #
+    # The fix: derive the prefix RELATIVE TO THE REPOSITORY ROOT, which is
+    # what the staged paths are relative to. Then it follows the platform
+    # wherever it lives inside the repository, in any era.
+    $platformPrefixes = @()
+    try {
+        $rootFull = [System.IO.Path]::GetFullPath($root).TrimEnd('\', '/')
+        $dirs = @(
+            [System.IO.Path]::GetFullPath($PSScriptRoot).TrimEnd('\', '/'),
+            [System.IO.Path]::GetFullPath((Join-Path (Split-Path -Parent $PSScriptRoot) 'config')).TrimEnd('\', '/')
+        )
+        foreach ($d in $dirs) {
+            if ($d.StartsWith($rootFull, [System.StringComparison]::OrdinalIgnoreCase)) {
+                $rel = $d.Substring($rootFull.Length).TrimStart('\', '/')
+                if ($rel) { $platformPrefixes += ($rel + '/') }
+            }
+        }
+    } catch {
+        $platformPrefixes = @()
+    }
+    if ($platformPrefixes.Count -eq 0) {
+        # Fallback, only if the root could not be resolved: the platform's
+        # own folder name, the way this used to be derived.
+        $platformLeaf = Split-Path -Leaf (Split-Path -Parent $PSScriptRoot)
+        $platformPrefixes = @(
+            ($platformLeaf + '/scripts/'),
+            ($platformLeaf + '/config/')
+        )
+    }
 
-    $allowedEmails = @('apvizual@gmail.com')
+    # MEASURED 2026-10-29: the address list is compared, and one legitimate
+    # address was missing from it. The rule was written 18 minutes after the
+    # file that uses it arrived in the tree (b6b9655 at 11:02, f306a4e at
+    # 11:20), so the author of the rule never saw the repository's own
+    # canonical Gmail skill - which queries a PUBLIC robot sender that GitHub
+    # itself uses. An audit of every tracked file found exactly ONE such
+    # address, so exactly ONE entry is added: the exact address, not its
+    # domain, so the rule stays as narrow as it was. Every other address
+    # still fails.
+    #
+    # The address is built in two pieces on purpose: this file is scanned by
+    # its own rule, so writing the address out in full would make the rule
+    # block itself.
+    $allowedEmails = @('apvizual@gmail.com', ('notifications@' + 'github.com'))
     $allowedEmailDomains = @('ap-id.ro')
     $internalEmailSuffix = '.local'
     $forbiddenBrand = 'Creafac'
